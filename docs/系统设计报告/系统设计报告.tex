@@ -1,9 +1,13 @@
 \documentclass{article}
-\usepackage[a4paper, margin=1in]{geometry}
+\usepackage[a4paper,top=1.5cm,bottom=1.5cm,left=2cm,right=2cm,marginparwidth=1.75cm]{geometry}
 \usepackage{graphicx}
 \usepackage{setspace}
 \usepackage{ctex}
 \usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{float}
 
 \begin{document}
 
@@ -89,8 +93,7 @@
 校园医疗服务平台的主要用户有以下几类：
 
 \begin{itemize}[itemsep=0.01em]
-    \item 在读学生
-    \item 教职工
+    \item 在读学生与教职工
     \item 医护人员
     \item 管理人员
 \end{itemize}
@@ -108,7 +111,7 @@
 经过上述背景调研和用户画像的分析，我们可以总结出需求如下：
 \vspace{0.5cm}
 
-对于每一位在读学生，我们希望能够提供以下服务：
+对于每一位在读学生以及教职工，我们希望能够提供以下服务：
 \begin{enumerate}[itemsep=0.01em]
     \item 拥有在线上查看医生排班并为自己\textbf{预约挂号}权限，能够选择合适时间段就诊。
     \item 能够查看自己的排队信息，\textbf{候诊查询}。
@@ -120,19 +123,6 @@
     \item 可以进行\textbf{在线健康咨询}。
     \item 能够接受相关\textbf{通知提醒}，如体检提醒、就诊提醒等。
     \item 定期接受\textbf{健康讲座}，提供健康教育。
-\end{enumerate}
-
-\vspace{0.5cm}
-对于教职工，我们希望能够提供以下服务：
-\begin{enumerate}[itemsep=0.01em]
-    \item 拥有在线上查看医生排班并为自己和家人\textbf{预约挂号}权限，能够选择合适时间段就诊。
-    \item 能够查看自己的排队信息，\textbf{候诊查询}。
-    \item 能够线上进行\textbf{在线缴费}，包括挂号费、药费等。
-    \item 能够在线购买一些非处方药品，\textbf{在线购药}。
-    \item 可以对于就诊经历进行评价，提供\textbf{医生评价}功能。
-    \item 能够查看自己的\textbf{健康档案}，包括体检记录、病历、就诊记录、处方等。
-    \item 可以进行\textbf{在线健康咨询}。
-    \item 能够接受相关\textbf{通知提醒}，如体检提醒、就诊提醒等。
 \end{enumerate}
 
 \vspace{0.5cm}
@@ -164,15 +154,205 @@
 \begin{enumerate}[itemsep=0.01em]
     \item 具有管理用户的权限，可以检索，修改，增加，删除所有的用户信息。
     \item 具有管理预约的权限，可以检索，修改，增加，删除所有的预约信息。
-    \item 具有管理药品、处方、病历等信息的权限。
+    \item 具有管理药品、处方、病历等信息的权限，可以检索，修改，增加，删除所有的医药信息。
 \end{enumerate}
 
 \subsection{数据流图}
 % 在此处添加数据流图
 
 \subsection{数据元素表}
+\subsubsection{用户管理部分}
 
-% 在此处添加数据元素表
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    学号 & student\_id & varchar(8) & 主键 \\ \midrule
+    姓名 & name & varchar(20) & 非空 \\ \midrule
+    性别 & gender & varchar(2) & 非空 \\ \midrule
+    出生日期 & birth & date & 非空 \\ \midrule
+    身份证号 & id\_number & varchar(18) & 非空 \\ \midrule
+    手机号 & phone & varchar(11) & 非空 \\ \midrule
+    行政班级 & class & varchar(6) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{学生用户数据元素表}
+    \label{tab:student_user_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    工号 & staff\_id & varchar(8) & 主键 \\ \midrule
+    姓名 & name & varchar(20) & 非空 \\ \midrule
+    性别 & gender & varchar(2) & 非空 \\ \midrule
+    手机号 & phone & varchar(11) & 非空 \\ \midrule
+    科室号 & department\_id & varchar(3) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{医师用户数据元素表}
+    \label{tab:doctor_user_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    工号 & staff\_id & varchar(8) & 主键 \\ \midrule
+    姓名 & name & varchar(20) & 非空 \\ \midrule
+    性别 & gender & varchar(2) & 非空 \\ \midrule
+    手机号 & phone & varchar(11) & 非空 \\ \midrule
+    药房号 & pharmacy\_id & varchar(2) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{药师数据元素表}
+    \label{tab:pharmacist_user_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    工号 & staff\_id & varchar(8) & 主键 \\ \midrule
+    姓名 & name & varchar(20) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{管理员数据元素表}
+    \label{tab:admin_user_elements}
+\end{table}
+
+\subsubsection{医疗系统部分}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    科室号 & department\_id & varchar(20) & 主键 \\ \midrule
+    科室名称 & department\_name & varchar(3) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{科室数据元素表}
+    \label{tab:department_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    医生工号 & doctor\_id & varchar(8) & 主键 \\ \midrule
+    科室号 & department\_id & varchar(3) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{医师从属科室元素表}
+    \label{tab:doctor_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    药房号 & pharmacy\_id & varchar(2) & 主键 \\ \midrule
+    药房名称 & pharmacy\_name & varchar(20) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{药房数据元素表}
+    \label{tab:pharmacy_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    药品号 & drug\_id & varchar(8) & 主键 \\ \midrule
+    药品名称 & drug\_name & varchar(20) & 非空 \\ \midrule
+    药品价格 & price & float & 非空 \\ \midrule
+    药房号 & pharmacy\_id & varchar(2) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{药品数据元素表}
+    \label{tab:drug_elements}
+\end{table}
+
+\subsubsection{预约管理部分}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    预约号 & appointment\_id & varchar(8) & 主键 \\ \midrule
+    预约时间 & appointment\_time & datetime & 非空 \\ \midrule
+    预约类型 & appointment\_type & varchar(10) & 非空 \\ \midrule
+    医师工号 & staff\_id & varchar(8) & 非空 \\ \midrule
+    预约人学号 & student\_id & varchar(8) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{预约数据元素表}
+    \label{tab:appointment_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    诊断号 & diagnosis\_id & varchar(8) & 主键 \\ \midrule
+    预约号 & appointment\_id & varchar(8) & 非空 \\ \midrule
+    诊断结果 & diagnosis & varchar(5000) & 非空 \\ \midrule
+    处方号 & prescription\_id & varchar(8) & 非空 \\ \midrule
+    诊断时间 & diagnosis\_time & datetime & 非空 \\ \midrule
+    诊断医师工号 & doctor\_id & varchar(8) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{诊断数据元素表}
+    \label{tab:diagnosis_elements}
+\end{table}
+
+\subsubsection{药品管理部分}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    处方号 & prescription\_id & varchar(8) & 主键 \\ \midrule
+    药品号 & drug\_id & varchar(8) & 非空 \\ \midrule
+    药品数量 & drug\_amount & int & 非空 \\ \midrule
+    诊断号 & diagnosis\_id & varchar(8) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{处方数据元素表}
+    \label{tab:prescription_elements}
+\end{table}
+
+\subsubsection{其他数据元素}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    通知号 & notification\_id & varchar(8) & 主键 \\ \midrule
+    通知内容 & notification & varchar(5000) & 非空 \\ \midrule
+    通知时间 & notification\_time & datetime & 非空 \\ \midrule
+    接收人工号 & staff\_id & varchar(8) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{通知数据元素表}
+    \label{tab:notification_elements}   
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    评价号 & evaluation\_id & varchar(8) & 主键 \\ \midrule
+    评价内容 & evaluation & varchar(5000) & 非空 \\ \midrule
+    评价时间 & evaluation\_time & datetime & 非空 \\ \midrule
+    评价人学号 & student\_id & varchar(8) & 非空 \\ \midrule
+    被评价人工号 & staff\_id & varchar(8) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{评价数据元素表}
+    \label{tab:evaluation_elements}
+\end{table}
 
 \section{数据库概念模式设计}
 \subsection{系统初步E-R 图}
