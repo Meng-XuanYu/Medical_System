@@ -116,7 +116,6 @@
     \item 拥有在线上查看医生排班并为自己\textbf{预约挂号}权限，能够选择合适时间段就诊。
     \item 能够查看自己的排队信息，\textbf{候诊查询}。
     \item 能够线上进行\textbf{在线缴费}，包括挂号费、药费等。
-    \item 能够在线购买一些非处方药品，\textbf{在线购药}。
     \item 对于每年的体检，能够在线上选择体检时间和项目，\textbf{预约体检}。
     \item 可以对于就诊经历进行评价，提供\textbf{医生评价}功能。
     \item 能够查看自己的\textbf{健康档案}，包括体检记录、病历、就诊记录、处方等。
@@ -124,6 +123,8 @@
     \item 能够接受相关\textbf{通知提醒}，如体检提醒、就诊提醒等。
     \item 定期接受\textbf{健康讲座}，提供健康教育。
 \end{enumerate}
+
+除此之外，对于教职工，我们还希望能够提供为他们的家属进行\textbf{预约挂号}、\textbf{候诊查询}、\textbf{家属健康档案}的服务。
 
 \vspace{0.5cm}
 对于医护人员，我们希望能够提供以下服务：
@@ -168,15 +169,16 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    学号 & student\_id & varchar(8) & 主键 \\ \midrule
-    姓名 & name & varchar(20) & 非空 \\ \midrule
-    性别 & gender & varchar(2) & 非空 \\ \midrule
+    学工号 & id & char(8) & 主键 \\ \midrule
+    密码 & password & varchar(25) & 非空 \\ \midrule
+    姓名 & name & varchar(15) & 非空 \\ \midrule
+    性别 & gender & char(1) & 非空 \\ \midrule
     出生日期 & birth & date & 非空 \\ \midrule
     身份证号 & id\_number & varchar(18) & 非空 \\ \midrule
-    手机号 & phone & varchar(11) & 非空 \\ \midrule
-    行政班级 & class & varchar(6) & 非空 \\ \bottomrule
+    用户类型 & user\_type & char(1) & 非空 \\ \midrule
+    手机号 & phone & varchar(11) & 非空 \\ \bottomrule
     \end{tabularx}
-    \caption{学生用户数据元素表}
+    \caption{用户数据元素表}
     \label{tab:student_user_elements}
 \end{table}
 
@@ -185,11 +187,12 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    工号 & staff\_id & varchar(8) & 主键 \\ \midrule
-    姓名 & name & varchar(20) & 非空 \\ \midrule
-    性别 & gender & varchar(2) & 非空 \\ \midrule
-    手机号 & phone & varchar(11) & 非空 \\ \midrule
-    科室号 & department\_id & varchar(3) & 非空 \\ \bottomrule
+    医工号 & staff\_id & char(5) & 主键 \\ \midrule
+    密码 & password & varchar(25) & 非空 \\ \midrule
+    姓名 & name & varchar(15) & 非空 \\ \midrule
+    性别 & gender & char(1) & 非空 \\ \midrule
+    职称 & title & varchar(10) & 非空 \\ \midrule
+    介绍 & introduction & varchar(500) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{医师用户数据元素表}
     \label{tab:doctor_user_elements}
@@ -200,14 +203,11 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    工号 & staff\_id & varchar(8) & 主键 \\ \midrule
-    姓名 & name & varchar(20) & 非空 \\ \midrule
-    性别 & gender & varchar(2) & 非空 \\ \midrule
-    手机号 & phone & varchar(11) & 非空 \\ \midrule
-    药房号 & pharmacy\_id & varchar(2) & 非空 \\ \bottomrule
+    医工号 & staff\_id & char(5) & 主键 \\ \midrule
+    密码 & password & varchar(25) & 非空 \\ \bottomrule
     \end{tabularx}
-    \caption{药师数据元素表}
-    \label{tab:pharmacist_user_elements}
+    \caption{管理员数据元素表}
+    \label{tab:admin_user_elements}
 \end{table}
 
 \begin{table}[H]
@@ -215,11 +215,15 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    工号 & staff\_id & varchar(8) & 主键 \\ \midrule
-    姓名 & name & varchar(20) & 非空 \\ \bottomrule
+    学工号 & id & char(8) & 主键 \\ \midrule
+    家属号 & family\_id & varchar(2) & 主键 \\ \midrule
+    家属姓名 & name & varchar(15) & 非空 \\ \midrule
+    家属性别 & gender & char(1) & 非空 \\ \midrule
+    家属出生日期 & birth & date & 非空 \\ \midrule
+    家属身份证号 & id\_number & varchar(18) & 非空 \\ \bottomrule
     \end{tabularx}
-    \caption{管理员数据元素表}
-    \label{tab:admin_user_elements}
+    \caption{家属数据元素表}
+    \label{tab:family_user_elements}
 \end{table}
 
 \subsubsection{医疗系统部分}
@@ -229,8 +233,8 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    科室号 & department\_id & varchar(20) & 主键 \\ \midrule
-    科室名称 & department\_name & varchar(3) & 非空 \\ \bottomrule
+    科室号 & department\_id & char(3) & 主键 \\ \midrule
+    科室名称 & department\_name & varchar(10) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{科室数据元素表}
     \label{tab:department_elements}
@@ -241,11 +245,14 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    医生工号 & doctor\_id & varchar(8) & 主键 \\ \midrule
-    科室号 & department\_id & varchar(3) & 非空 \\ \bottomrule
+    排班号 & schedule\_id & char(8) & 主键 \\ \midrule
+    医工号 & staff\_id & char(5) & 非空 \\ \midrule
+    科室号 & department\_id & char(3) & 非空 \\ \midrule
+    排班时间 & schedule\_time & datetime & 非空 \\ \midrule
+    排班日期 & schedule\_date & date & 非空 \\ \bottomrule
     \end{tabularx}
-    \caption{医师从属科室元素表}
-    \label{tab:doctor_elements}
+    \caption{排班数据元素表}
+    \label{tab:schedule_elements}
 \end{table}
 
 \begin{table}[H]
@@ -254,7 +261,7 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     药房号 & pharmacy\_id & varchar(2) & 主键 \\ \midrule
-    药房名称 & pharmacy\_name & varchar(20) & 非空 \\ \bottomrule
+    药房名称 & pharmacy\_name & varchar(10) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{药房数据元素表}
     \label{tab:pharmacy_elements}
@@ -265,13 +272,41 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    药品号 & drug\_id & varchar(8) & 主键 \\ \midrule
+    药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
     药品名称 & drug\_name & varchar(20) & 非空 \\ \midrule
     药品价格 & price & float & 非空 \\ \midrule
     药房号 & pharmacy\_id & varchar(2) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{药品数据元素表}
     \label{tab:drug_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
+    药品数量 & drug\_amount & int & 非空 \\ \midrule
+    药房号 & pharmacy\_id & varchar(2) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{药品库存数据元素表}
+    \label{tab:drug_storage_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    体检号 & physical\_examination\_id & varchar(8) & 主键 \\ \midrule
+    体检项目 & physical\_examination & varchar(100) & 非空 \\ \midrule
+    体检结果 & physical\_examination\_result & varchar(1000) & 非空 \\ \midrule
+    体检日期 & physical\_examination\_date & date & 非空 \\ \midrule
+    学工号 & id & char(8) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{体检数据元素表}
+    \label{tab:physical_examination_elements}
 \end{table}
 
 \subsubsection{预约管理部分}
@@ -284,8 +319,9 @@
     预约号 & appointment\_id & varchar(8) & 主键 \\ \midrule
     预约时间 & appointment\_time & datetime & 非空 \\ \midrule
     预约类型 & appointment\_type & varchar(10) & 非空 \\ \midrule
-    医师工号 & staff\_id & varchar(8) & 非空 \\ \midrule
-    预约人学号 & student\_id & varchar(8) & 非空 \\ \bottomrule
+    医工号 & staff\_id & varchar(8) & 非空 \\ \midrule
+    患者与预约人关系 & relationship & varchar(10) & 非空 \\ \midrule
+    学工号 & id & varchar(8) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{预约数据元素表}
     \label{tab:appointment_elements}
@@ -297,11 +333,15 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     诊断号 & diagnosis\_id & varchar(8) & 主键 \\ \midrule
-    预约号 & appointment\_id & varchar(8) & 非空 \\ \midrule
-    诊断结果 & diagnosis & varchar(5000) & 非空 \\ \midrule
+    检查项目 & examination & varchar(100) & 非空 \\ \midrule
+    检查结果 & examination\_result & varchar(1000) & 非空 \\ \midrule
+    参考范围 & reference & varchar(1000) & 非空 \\ \midrule
+    临床诊断 & clinical\_diagnosis & varchar(5000) & 非空 \\ \midrule
     处方号 & prescription\_id & varchar(8) & 非空 \\ \midrule
+    诊断日期 & diagnosis\_date & date & 非空 \\ \midrule
     诊断时间 & diagnosis\_time & datetime & 非空 \\ \midrule
-    诊断医师工号 & doctor\_id & varchar(8) & 非空 \\ \bottomrule
+    患者身份证号 & id\_number & varchar(18) & 非空 \\ \midrule
+    诊断医工号 & staff\_id & char(5) & 主键 \\ \bottomrule
     \end{tabularx}
     \caption{诊断数据元素表}
     \label{tab:diagnosis_elements}
@@ -315,9 +355,11 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     处方号 & prescription\_id & varchar(8) & 主键 \\ \midrule
-    药品号 & drug\_id & varchar(8) & 非空 \\ \midrule
+    药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
     药品数量 & drug\_amount & int & 非空 \\ \midrule
-    诊断号 & diagnosis\_id & varchar(8) & 非空 \\ \bottomrule
+    用法用量 & usage & varchar(100) & 非空 \\ \midrule
+    注意事项 & precautions & varchar(1000) & 非空 \\ \midrule
+    患者身份证号 & id\_number & varchar(18) & 非空 \\ \midrule
     \end{tabularx}
     \caption{处方数据元素表}
     \label{tab:prescription_elements}
@@ -333,7 +375,7 @@
     通知号 & notification\_id & varchar(8) & 主键 \\ \midrule
     通知内容 & notification & varchar(5000) & 非空 \\ \midrule
     通知时间 & notification\_time & datetime & 非空 \\ \midrule
-    接收人工号 & staff\_id & varchar(8) & 非空 \\ \bottomrule
+    接收人学工号 & staff\_id & varchar(8) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{通知数据元素表}
     \label{tab:notification_elements}   
@@ -347,8 +389,8 @@
     评价号 & evaluation\_id & varchar(8) & 主键 \\ \midrule
     评价内容 & evaluation & varchar(5000) & 非空 \\ \midrule
     评价时间 & evaluation\_time & datetime & 非空 \\ \midrule
-    评价人学号 & student\_id & varchar(8) & 非空 \\ \midrule
-    被评价人工号 & staff\_id & varchar(8) & 非空 \\ \bottomrule
+    评价人学工号 & id & varchar(8) & 非空 \\ \midrule
+    被评价人医工号 & staff\_id & char(5) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{评价数据元素表}
     \label{tab:evaluation_elements}
