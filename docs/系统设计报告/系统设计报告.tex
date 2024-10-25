@@ -115,7 +115,8 @@
 \begin{enumerate}[itemsep=0.01em]
     \item 拥有在线上查看医生排班并为自己\textbf{预约挂号}权限，能够选择合适时间段就诊。
     \item 能够查看自己的排队信息，\textbf{候诊查询}。
-    \item 能够线上进行\textbf{在线缴费}，包括挂号费、药费等。
+    \item 
+    能够线上进行\textbf{在线缴费}，包括挂号费、药费等。
     \item 对于每年的体检，能够在线上选择体检时间和项目，\textbf{预约体检}。
     \item 可以对于就诊经历进行评价，提供\textbf{医生评价}功能。
     \item 能够查看自己的\textbf{健康档案}，包括体检记录、病历、就诊记录、处方等。
@@ -170,9 +171,13 @@
 
 \subsubsection{用户功能数据流图}
 
+用户登录时，前端会将登陆类型和账号密码发送给后端，后端会根据账号密码查询数据库，返回用户信息，用户信息会一直保存在前端，直到用户退出登录。
+
+用户修改个人信息或者修改医院用户信息时，前端会将修改后的信息发送给后端，后端会根据用户的学工号查询数据库，修改用户信息。
+
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{images/user_dataflow.png}
+    \includegraphics[width=0.8\textwidth]{images/user_dataflow.png}
     \caption{用户功能数据流图}
 \end{figure}
 
