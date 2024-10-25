@@ -54,7 +54,7 @@
     \hline
     孟烜宇& & & & \\
     \hline
-    余欣实& & & & \\
+    余欣实& 0 & 0 & 0 & 0 \\
     \hline
     曹玮琳& & & & \\
     \hline
@@ -169,7 +169,9 @@
     \caption{顶层数据流图}
 \end{figure}
 
-\subsubsection{用户功能数据流图}
+\subsubsection{层数据流图}
+
+\paragraph{用户系统数据流图}
 
 用户登录时，前端会将登陆类型和账号密码发送给后端，后端会根据账号密码查询数据库，返回用户信息，用户信息会一直保存在前端，直到用户退出登录。
 
@@ -178,15 +180,15 @@
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/user_dataflow.png}
-    \caption{用户功能数据流图}
+    \caption{用户系统数据流图}
 \end{figure}
 
-\subsubsection{医护人员功能数据流图}
+\paragraph{医院管理数据流图}
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{images/doctor_dataflow.png}
-    \caption{医护人员功能数据流图}
+    \includegraphics[width=0.8\textwidth]{images/doctorAdmin_dataflow.png}
+    \caption{医院管理数据流图}
 \end{figure}
 
 \subsubsection{管理人员功能数据流图}
