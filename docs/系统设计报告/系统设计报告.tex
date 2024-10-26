@@ -185,34 +185,35 @@
 
 \paragraph{医院管理数据流图}
 
+关于医院的管理任务，医院管理员在登陆后，可以查看和更改医院的排班信息，可以查看和更改（比如进药）医院的药品信息，可以录入和更改医院的医师信息，
+可以查看和更改（比如因排班调整导致的预约信息的变换）医院的预约信息，可以查看和更改医院的评价信息，可以查看通知和发布通知给指定人员。
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/doctorAdmin_dataflow.png}
     \caption{医院管理数据流图}
 \end{figure}
 
-\subsubsection{管理人员功能数据流图}
+\paragraph{预约功能数据流图}
+
+用户在登录后，可以查看医生的排班信息，可以选择预约时间，可以查看自己的预约信息，可以取消预约；医生在登录后，可以查看自己的排班信息和相应的预约信息。
+
+而对于体检，用户在登录后，可以查看体检项目，可以选择体检时间，可以查看自己的体检信息。
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{images/admin_dataflow.png}
-    \caption{管理人员功能数据流图}
+    \includegraphics[width=0.8\textwidth]{images/appointment_dataflow.png}
+    \caption{预约功能数据流图}
 \end{figure}
 
-\subsubsection{预约挂号功能数据流图}
+\paragraph{诊断功能数据流图}
+
+用户在登录后，
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{images/appointment_dataflow.png}
-    \caption{预约挂号功能数据流图}
-\end{figure}
-
-\subsubsection{通知提醒功能数据流图}
-
-\begin{figure}[H]
-    \centering
-    % \includegraphics[width=0.8\textwidth]{images/notification_dataflow.png}
-    \caption{通知提醒功能数据流图}
+    \includegraphics[width=0.8\textwidth]{images/diagnosis_dataflow.png}
+    \caption{诊断功能数据流图}
 \end{figure}
 
 \subsection{数据元素表}
@@ -348,22 +349,36 @@
     \label{tab:drug_storage_elements}
 \end{table}
 
+\subsubsection{预约管理部分}
+
 \begin{table}[H]
     \centering
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    体检号 & physical\_examination\_id & varchar(8) & 主键 \\ \midrule
-    体检项目 & physical\_examination & varchar(100) & 非空 \\ \midrule
-    体检结果 & physical\_examination\_result & varchar(1000) & 非空 \\ \midrule
-    体检日期 & physical\_examination\_date & date & 非空 \\ \midrule
+    体检号 & examination\_id & varchar(8) & 主键 \\ \midrule
+    体检项目 & examination & text & 非空 \\ \midrule
+    体检日期 & examination\_date & date & 非空 \\ \midrule
+    负责医工号 & staff\_id & char(5) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{体检安排元素表}
+    \label{tab:examination_arrangement_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    体检号 & examination\_id & varchar(8) & 主键 \\ \midrule
+    体检项目 & examination & text & 非空 \\ \midrule
+    体检结果 & examination\_result & text & 非空 \\ \midrule
+    体检日期 & examination\_date & date & 非空 \\ \midrule
     学工号 & id & char(8) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{体检数据元素表}
-    \label{tab:physical_examination_elements}
+    \label{tab:examination_elements}
 \end{table}
-
-\subsubsection{预约管理部分}
 
 \begin{table}[H]
     \centering
@@ -387,10 +402,10 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     诊断号 & diagnosis\_id & varchar(8) & 主键 \\ \midrule
-    检查项目 & examination & varchar(100) & 非空 \\ \midrule
-    检查结果 & examination\_result & varchar(1000) & 非空 \\ \midrule
-    参考范围 & reference & varchar(1000) & 非空 \\ \midrule
-    临床诊断 & clinical\_diagnosis & varchar(5000) & 非空 \\ \midrule
+    检查项目 & examination & text & 非空 \\ \midrule
+    检查结果 & examination\_result & text & 非空 \\ \midrule
+    参考范围 & reference & text & 非空 \\ \midrule
+    临床诊断 & clinical\_diagnosis & text & 非空 \\ \midrule
     处方号 & prescription\_id & varchar(8) & 非空 \\ \midrule
     诊断日期 & diagnosis\_date & date & 非空 \\ \midrule
     诊断时间 & diagnosis\_time & datetime & 非空 \\ \midrule
@@ -411,8 +426,8 @@
     处方号 & prescription\_id & varchar(8) & 主键 \\ \midrule
     药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
     药品数量 & drug\_amount & int & 非空 \\ \midrule
-    用法用量 & usage & varchar(100) & 非空 \\ \midrule
-    注意事项 & precautions & varchar(1000) & 非空 \\ \midrule
+    用法用量 & usage & text & 非空 \\ \midrule
+    注意事项 & precautions & text & 非空 \\ \midrule
     患者身份证号 & id\_number & varchar(18) & 非空 \\ \midrule
     \end{tabularx}
     \caption{处方数据元素表}
@@ -427,7 +442,7 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     通知号 & notification\_id & varchar(8) & 主键 \\ \midrule
-    通知内容 & notification & varchar(5000) & 非空 \\ \midrule
+    通知内容 & notification & text & 非空 \\ \midrule
     通知时间 & notification\_time & datetime & 非空 \\ \midrule
     接收人学工号 & staff\_id & varchar(8) & 非空 \\ \bottomrule
     \end{tabularx}
@@ -441,7 +456,7 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     评价号 & evaluation\_id & varchar(8) & 主键 \\ \midrule
-    评价内容 & evaluation & varchar(5000) & 非空 \\ \midrule
+    评价内容 & evaluation & text & 非空 \\ \midrule
     评价时间 & evaluation\_time & datetime & 非空 \\ \midrule
     评价人学工号 & id & varchar(8) & 非空 \\ \midrule
     被评价人医工号 & staff\_id & char(5) & 非空 \\ \bottomrule
