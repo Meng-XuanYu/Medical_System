@@ -120,7 +120,6 @@
     \item 对于每年的体检，能够在线上选择体检时间和项目，\textbf{预约体检}。
     \item 可以对于就诊经历进行评价，提供\textbf{医生评价}功能。
     \item 能够查看自己的\textbf{健康档案}，包括体检记录、病历、就诊记录、处方等。
-    \item 可以进行\textbf{在线健康咨询}。
     \item 能够接受相关\textbf{通知提醒}，如体检提醒、就诊提醒等。
     \item 定期接受\textbf{健康讲座}，提供健康教育。
 \end{enumerate}
@@ -134,7 +133,6 @@
     \item 可以查看预约记录，\textbf{预约查询}。
     \item 可以查看排队信息，\textbf{候诊查询}。
     \item 可以查看\textbf{患者信息}，包括病历、就诊记录、处方等。
-    \item 能够进行\textbf{在线诊断}，并进行回复。
     \item 可以查看\textbf{患者评价}，并进行回复。
     \item 能够接受相关\textbf{通知提醒}，如排班提醒、患者评价提醒等。
     \item 能够创建或者更新\textbf{患者病历}。
@@ -208,12 +206,43 @@
 
 \paragraph{诊断功能数据流图}
 
-用户在登录后，
+患者在问诊后，医生会进行诊断并诊断结果会保存在数据库中，患者可以查看自己的诊断结果，医生可以查看患者的诊断结果。
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/diagnosis_dataflow.png}
     \caption{诊断功能数据流图}
+\end{figure}
+
+\paragraph{体检功能数据流图}
+
+患者在体检后，体检结果会保存在数据库中，患者可以查看自己的体检结果，医生可以填写患者的体检结果。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/examination_dataflow.png}
+    \caption{体检功能数据流图}
+\end{figure}
+
+\paragraph{药品管理数据流图}
+
+医生在诊断后，可以开具处方，处方会保存在数据库中，患者可以查看自己的处方，医生可以查看患者的处方。
+
+根据处方，医院会发药，发药信息会保存在数据库中，患者可以查看自己的发药信息。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/drug_dataflow.png}
+    \caption{药品管理数据流图}
+\end{figure}
+
+\paragraph{评价功能数据流图}
+
+患者在问诊或者体检后，可以对医生进行评价，评价会保存在数据库中，医生可以查看自己的评价。
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/evaluation_dataflow.png}
+    \caption{评价功能数据流图}
 \end{figure}
 
 \subsection{数据元素表}
@@ -374,7 +403,7 @@
     体检项目 & examination & text & 非空 \\ \midrule
     体检结果 & examination\_result & text & 非空 \\ \midrule
     体检日期 & examination\_date & date & 非空 \\ \midrule
-    学工号 & id & char(8) & 非空 \\ \bottomrule
+    学工号 & id & char(8) & 主键 \\ \bottomrule
     \end{tabularx}
     \caption{体检数据元素表}
     \label{tab:examination_elements}
@@ -427,8 +456,7 @@
     药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
     药品数量 & drug\_amount & int & 非空 \\ \midrule
     用法用量 & usage & text & 非空 \\ \midrule
-    注意事项 & precautions & text & 非空 \\ \midrule
-    患者身份证号 & id\_number & varchar(18) & 非空 \\ \midrule
+    注意事项 & precautions & text & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{处方数据元素表}
     \label{tab:prescription_elements}
