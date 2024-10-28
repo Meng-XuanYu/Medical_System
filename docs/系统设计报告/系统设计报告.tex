@@ -276,7 +276,7 @@
     姓名 & name & varchar(15) & 非空 \\ \midrule
     性别 & gender & char(1) & 非空 \\ \midrule
     职称 & title & varchar(10) & 非空 \\ \midrule
-    肖像 & portrait\_path & varchar(255) & 非空 \\ \midrule
+    图片号 & image\_id & varchar(10) &  \\ \midrule
     介绍 & introduction & text & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{医师用户数据元素表}
@@ -288,7 +288,7 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    医工号 & staff\_id & char(5) & 主键 \\ \midrule
+    管理员号 & admin\_id & char(3) & 主键 \\ \midrule
     姓名 & name & varchar(15) & 非空 \\ \midrule
     密码 & password & varchar(25) & 非空 \\ \bottomrule
     \end{tabularx}
@@ -302,6 +302,8 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     家属号 & family\_id & varchar(2) & 主键 \\ \midrule
+    学工号 & id & char(8) & 主键 \\ \midrule
+    关系 & relationship & varchar(10) & 非空 \\ \bottomrule
     姓名 & name & varchar(15) & 非空 \\ \midrule
     性别 & gender & char(1) & 非空 \\ \midrule
     出生日期 & birth & date & 非空 \\ \midrule
@@ -309,19 +311,6 @@
     \end{tabularx}
     \caption{家属数据元素表}
     \label{tab:family_user_elements}
-\end{table}
-
-\begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
-    \toprule
-    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    学工号 & id & char(8) & 主键 \\ \midrule
-    家属号 & family\_id & varchar(2) & 主键 \\ \midrule
-    关系 & relationship & varchar(10) & 非空 \\ \bottomrule
-    \end{tabularx}
-    \caption{家属关系数据元素表}
-    \label{tab:family_relationship_elements}
 \end{table}
 
 \subsubsection{医疗系统部分}
@@ -347,7 +336,7 @@
     医工号 & staff\_id & char(5) & 非空 \\ \midrule
     科室号 & department\_id & char(3) & 非空 \\ \midrule
     排班时间 & schedule\_time & datetime & 非空 \\
-     \bottomrule
+    \bottomrule
     \end{tabularx}
     \caption{排班数据元素表}
     \label{tab:schedule_elements}
@@ -372,6 +361,7 @@
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
     药品名称 & drug\_name & varchar(20) & 非空 \\ \midrule
+    图片号 & image\_id & varchar(10) &  \\ \midrule
     药品价格 & price & float & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{药品数据元素表}
@@ -412,12 +402,13 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    体检号 & examination\_id & varchar(8) & 主键 \\ \midrule
-    体检结果 & examination\_result & text & 非空 \\ \midrule
-    学工号 & id & char(8) & 主键 \\ \bottomrule
+    体检预约号 & exam\_appointment\_id & varchar(8) & 主键 \\ \midrule
+    体检号 & examination\_id & varchar(8) & 非空 \\ \midrule
+    体检结果 & examination\_result & text &  \\ \midrule
+    学工号 & id & char(8) & 非空 \\ \bottomrule
     \end{tabularx}
-    \caption{体检结果数据元素表}
-    \label{tab:examination_elements}
+    \caption{体检信息数据元素表}
+    \label{tab:examination_appointment_elements}
 \end{table}
 
 \begin{table}[H]
@@ -427,22 +418,11 @@
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     预约号 & appointment\_id & varchar(8) & 主键 \\ \midrule
     患者与预约人关系 & relationship & varchar(10) & 非空 \\ \midrule
+    排班号 & schedule\_id & char(8) & 非空 \\ \midrule
     学工号 & id & varchar(8) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{预约数据元素表}
     \label{tab:appointment_elements}
-\end{table}
-
-\begin{table}[H]
-    \centering
-    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
-    \toprule
-    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    预约号 & appointment\_id & varchar(8) & 主键 \\ \midrule
-    排班号 & schedule\_id & char(8) & 非空 \\ \midrule
-    \end{tabularx}
-    \caption{预约排班数据元素表}
-    \label{tab:appointment_schedule_elements}
 \end{table}
 
 \begin{table}[H]
@@ -458,7 +438,8 @@
     处方号 & prescription\_id & varchar(8) & 非空 \\ \midrule
     诊断时间 & diagnosis\_time & datetime & 非空 \\ \midrule
     患者身份证号 & id\_number & varchar(18) & 非空 \\ \midrule
-    医工号 & staff\_id & char(5) & 主键 \\ \bottomrule
+    预约号 & appointment\_id & varchar(8) & 非空 \\ \midrule
+    医工号 & staff\_id & char(5) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{诊断数据元素表}
     \label{tab:diagnosis_elements}
@@ -491,6 +472,7 @@
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     通知号 & notification\_id & varchar(8) & 主键 \\ \midrule
     通知内容 & notification & text & 非空 \\ \midrule
+    图片号 & image\_id & varchar(10) &  \\ \midrule
     通知时间 & notification\_time & datetime & 非空 \\ \midrule
     接收人学工号 & staff\_id & varchar(8) & 非空 \\ \bottomrule
     \end{tabularx}
@@ -507,15 +489,31 @@
     评价内容 & evaluation & text & 非空 \\ \midrule
     评价时间 & evaluation\_time & datetime & 非空 \\ \midrule
     评价人学工号 & id & varchar(8) & 非空 \\ \midrule
+    图片号 & image\_id & varchar(10) &  \\ \midrule
     被评价人医工号 & staff\_id & char(5) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{评价数据元素表}
     \label{tab:evaluation_elements}
 \end{table}
 
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    图片号 & image\_id & varchar(10) & 主键 \\ \midrule
+    图片名称 & image\_name & varchar(20) & 非空 \\ \midrule
+    上传时间 & upload\_time & datetime &  \\ \midrule
+    \end{tabularx}
+    \caption{图片数据元素表}
+    \label{tab:image_elements}
+\end{table}
+
 \section{数据库概念模式设计}
 
 \subsection{系统分E-R 图}
+
+一个用户（用户类型为教职工）可以有多个家属，一个家属只能对应一个用户。
 
 \begin{figure}[H]
     \centering
@@ -523,11 +521,17 @@
     \caption{系统分 E-R 图}
 \end{figure}
 
+一个医院管理员可以安排多个医生的排班，一个医生可以被安排多个排班。
+一个科室可以有多个医生，一个医生只能属于一个科室。
+一个科室可以有多个排班信息，一个排班信息只能属于一个科室。
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/dividedER2.png}
     \caption{系统分 E-R 图}
 \end{figure}
+
+一个诊断可以有多个处方，一个处方只能对应一个诊断。
 
 \begin{figure}[H]
     \centering
@@ -535,11 +539,18 @@
     \caption{系统分 E-R 图}
 \end{figure}
 
+一个药品只会在一个药房，一个药房可以有多个药品。
+一次体检安排可以有多个体检结果，一个体检结果只能对应一个体检安排。
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/dividedER4.png}
     \caption{系统分 E-R 图}
 \end{figure}
+
+一个医院管理员可以发送多个通知，一个用户可以接收多个通知。
+一个用户可以发送多个评价，一个评价只属于一个用户，一个医生可以接收多个评价。
+一个用户可以发起多个预约，一个预约只属于一个排班，一个排班可以有多个预约。
 
 \begin{figure}[H]
     \centering
@@ -548,34 +559,373 @@
 \end{figure}
 
 \subsection{系统初步E-R 图}
-% 在此处添加系统初步E-R 图
 
-\begin{figure}
+可以得到系统的初步 E-R 图如下（已经略去属性，详见分 E-R 图）：
+
+\begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{images/initER.png}
+    \includegraphics[width=0.8\textwidth]{images/initER.png}
     \caption{系统初步 E-R 图}
 \end{figure}
 
 \subsection{系统基本 E-R 图}
-% 在此处添加系统基本 E-R 图
 
-\begin{figure}
+由于医师，医生管理员和科室是1:1:1的关系，我们可以将实体科室下降为医生管理员安排医师排班这一关系的属性，而科室的属性直接降为这一关系的属性。
+
+可以得到系统的基本 E-R 图如下（已经略去属性，详见分 E-R 图）：
+
+\begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{images/basicER.png}
+    \includegraphics[width=0.8\textwidth]{images/basicER.png}
     \caption{系统基本 E-R 图}
 \end{figure}
 
 \section{数据库逻辑模式设计与优化}
 \subsection{数据库关系模式定义}
-% 在此处添加由 E-R 图得到的关系模式
+关系模式可以形式化表⽰为 $R(U, D, DOM, F)$ 。$U$ 为组成该关系的属性名，$D$ 为 $U$ 中属性所来⾃的域，
+$DOM$ 指的是属性与域的映射，$F$ 指的是属性间的依赖关系集合。以下约定 $N$ 表示正整数，$S$ 表示任意字符组成的字符串， $T$ 表示时间, $DT$代表日期。码以下划线标识。
+
+下面是由 ER 图得到的关系模式。
+
+\subsubsection{实体}
+
+\paragraph{用户}
+
+用户(\{\underline{学工号}, 密码, 姓名, 性别, 出生日期, 身份证号, 用户类型, 手机号\}, $D_{user}$, $DOM_{user}$, $F_{user}$)
+
+D\_user = \{S,DT\}
+
+DOM\_user = \{DOM\_user(学工号) = DOM\_user(密码) = DOM\_user(姓名) = DOM\_user(性别) = DOM\_user(身份证号) = DOM\_user(用户类型) = DOM\_user(手机号) = S , DOM\_user(出生日期) = DT\}
+
+F\_user = \{学工号 $\rightarrow$ 密码, 姓名, 性别, 出生日期, 身份证号, 用户类型, 手机号\}
+
+\paragraph{家属}
+
+家属(\{\underline{家属号}, 姓名, 性别, 出生日期, 身份证号\}, $D_{family}$, $DOM_{family}$, $F_{family}$)
+
+D\_family = \{S,DT\}
+
+DOM\_family = \{DOM\_family(家属号) = DOM\_family(姓名) = DOM\_family(性别) = DOM\_family(身份证号) = S, DOM\_family(出生日期) = DT\}
+
+F\_family = \{家属号 $\rightarrow$ 姓名, 性别, 出生日期, 身份证号\}
+
+\paragraph{医师}
+
+医师(\{\underline{医工号}, 密码, 姓名, 性别, 职称, 图片号, 介绍\}, $D_{doctor}$, $DOM_{doctor}$, $F_{doctor}$)
+
+D\_doctor = \{S\}
+
+DOM\_doctor = \{DOM\_doctor(医工号) = DOM\_doctor(密码) = DOM\_doctor(姓名) = \newline DOM\_doctor(性别) = DOM\_doctor(职称) = DOM\_doctor(图片号) = DOM\_doctor(介绍) = S\}
+
+F\_doctor = \{医工号 $\rightarrow$ 密码, 姓名, 性别, 职称, 图片号, 介绍\}
+
+\paragraph{医院管理员}
+
+医院管理员(\{\underline{管理员号}, 密码, 姓名\}, $D_{admin}$, $DOM_{admin}$, $F_{admin}$)
+
+D\_admin = \{S\}
+
+DOM\_admin = \{DOM\_admin(管理员号) = DOM\_admin(密码) = DOM\_admin(姓名) = S\}
+
+F\_admin = \{管理员号 $\rightarrow$ 密码, 姓名\}
+
+\paragraph{科室}
+
+科室(\{\underline{科室号}, 科室名称\}, $D_{department}$, $DOM_{department}$, $F_{department}$)
+
+D\_department = \{S\}
+
+DOM\_department = \{DOM\_department(科室号) = DOM\_department(科室名称) = S\}
+
+F\_department = \{科室号 $\rightarrow$ 科室名称\}
+
+\paragraph{药房}
+
+药房(\{\underline{药房号}, 药房名称\}, $D_{pharmacy}$, $DOM_{pharmacy}$, $F_{pharmacy}$)
+
+D\_pharmacy = \{S\}
+
+DOM\_pharmacy = \{DOM\_pharmacy(药房号) = DOM\_pharmacy(药房名称) = S\}
+
+F\_pharmacy = \{药房号 $\rightarrow$ 药房名称\}
+
+\paragraph{药品}
+
+药品(\{\underline{药品号}, 药品名称, 图片号, 药品价格\}, $D_{drug}$, $DOM_{drug}$, $F_{drug}$)
+
+D\_drug = \{S\}
+
+DOM\_drug = \{DOM\_drug(药品号) = DOM\_drug(药品名称) = DOM\_drug(图片号) = S, \newline DOM\_drug(药品价格) = N\}
+
+F\_drug = \{药品号 $\rightarrow$ 药品名称, 图片号, 药品价格\}
+
+\paragraph{排班}
+
+排班(\{\underline{排班号}, 医工号, 科室号, 排班时间\}, $D_{schedule}$, $DOM_{schedule}$, $F_{schedule}$)
+
+D\_schedule = \{S,T\}
+
+DOM\_schedule = \{DOM\_schedule(排班号) = DOM\_schedule(医工号) = DOM\_schedule(科室号) = S, DOM\_schedule(排班时间) = T\}
+
+F\_schedule = \{排班号 $\rightarrow$ 医工号, 科室号, 排班时间\}
+
+\paragraph{体检安排}
+
+体检安排(\{\underline{体检号}, 体检项目, 体检日期, 负责医工号\}, $D_{examination\_arrangement}$, \newline$DOM_{examination\_arrangement}$, $F_{examination\_arrangement}$)
+
+D\_examination\_arrangement = \{S,DT\}
+
+DOM\_examination\_arrangement = \{DOM\_examination\_arrangement(体检号) = \newline DOM\_examination\_arrangement(体检项目) = S, \newline DOM\_examination\_arrangement(体检日期) = DT, DOM\_examination\_arrangement(负责医工号) = S\}
+
+F\_examination\_arrangement = \{体检号 $\rightarrow$ 体检项目, 体检日期, 负责医工号\}
+
+\paragraph{体检信息}
+
+体检信息(\{\underline{体检预约号}, 体检号, 体检结果, 学工号\}, $D_{examination\_appointment}$, \newline $DOM_{examination\_appointment}$, $F_{examination\_appointment}$)
+
+D\_examination\_appointment = \{S\}
+
+DOM\_examination\_appointment = \{DOM\_examination\_appointment(体检预约号) = \newline DOM\_examination\_appointment(体检号) = \newline DOM\_examination\_appointment(体检结果) = S, DOM\_examination\_appointment(学工号) = S\}
+
+F\_examination\_appointment = \{体检预约号 $\rightarrow$ 体检号, 体检结果, 学工号\}
+
+\paragraph{预约}
+
+预约(\{\underline{预约号}, 患者与预约人关系, 排班号, 学工号\}, $D_{appointment}$, $DOM_{appointment}$, $F_{appointment}$)
+
+D\_appointment = \{S\}
+
+DOM\_appointment = \{DOM\_appointment(预约号) = DOM\_appointment(患者与预约人关系) = \newline DOM\_appointment(排班号) = DOM\_appointment(学工号) = S\}
+
+F\_appointment = \{预约号 $\rightarrow$ 患者与预约人关系, 排班号, 学工号\}
+
+\paragraph{诊断}
+
+诊断(\{\underline{诊断号}, 检查项目, 检查结果, 参考范围, 临床诊断, 处方号, 诊断时间, 患者身份证号, 预约号, 医工号\}, $D_{diagnosis}$, $DOM_{diagnosis}$, $F_{diagnosis}$)
+
+D\_diagnosis = \{S,DT\}
+
+DOM\_diagnosis = \{DOM\_diagnosis(诊断号) = DOM\_diagnosis(检查项目) = DOM\_diagnosis(检查结果) = DOM\_diagnosis(参考范围) = DOM\_diagnosis(临床诊断) = DOM\_diagnosis(处方号) = S,\newline DOM\_diagnosis(诊断时间) = DT, DOM\_diagnosis(患者身份证号) = DOM\_diagnosis(预约号) = \newline DOM\_diagnosis(医工号) = S\}
+
+F\_diagnosis = \{诊断号 $\rightarrow$ 检查项目, 检查结果, 参考范围, 临床诊断, 处方号, 诊断时间, 患者身份证号, 预约号, 医工号\}
+
+\paragraph{处方}
+
+处方(\{\underline{处方号}, 诊断号, 药品号, 药品数量, 用法用量, 注意事项\}, $D_{prescription}$, $DOM_{prescription}$, $F_{prescription}$)
+
+D\_prescription = \{S,N\}
+
+DOM\_prescription = \{DOM\_prescription(处方号) = DOM\_prescription(诊断号) = \newline DOM\_prescription(药品号) = S, DOM\_prescription(药品数量) = N, \newline DOM\_prescription(用法用量) = DOM\_prescription(注意事项) = S\}
+
+F\_prescription = \{处方号 $\rightarrow$ 诊断号, 药品号, 药品数量, 用法用量, 注意事项\}
+
+\paragraph{通知}
+
+通知(\{\underline{通知号}, 通知内容, 通知时间, 接收人学工号, 图片号\}, $D_{notification}$, \newline $DOM_{notification}$, $F_{notification}$)
+
+D\_notification = \{S,DT\}
+
+DOM\_notification = \{DOM\_notification(通知号) = DOM\_notification(通知内容) = S, \newline DOM\_notification(通知时间) = DT, DOM\_notification(接收人学工号) = DOM\_notification(图片号) = S\}
+
+F\_notification = \{通知号 $\rightarrow$ 通知内容, 通知时间, 接收人学工号, 图片号\}
+
+\paragraph{评价}
+
+评价(\{\underline{评价号}, 评价内容, 评价时间, 评价人学工号, 被评价人医工号, 图片号\}, $D_{evaluation}$, \newline $DOM_{evaluation}$, $F_{evaluation}$)
+
+D\_evaluation = \{S,DT\}
+
+DOM\_evaluation = \{DOM\_evaluation(评价号) = DOM\_evaluation(评价内容) = S, \newline DOM\_evaluation(评价时间) = DT, DOM\_evaluation(评价人学工号) = DOM\_evaluation(被评价人医工号) = DOM\_evaluation(图片号) = S\}
+
+F\_evaluation = \{评价号 $\rightarrow$ 评价内容, 评价时间, 评价人学工号, 被评价人医工号, 图片号\}
+
+\paragraph{图片}
+
+图片(\{\underline{图片号}, 图片名称, 上传时间\}, $D_{image}$, $DOM_{image}$, $F_{image}$)
+
+D\_image = \{S,T\}
+
+DOM\_image = \{DOM\_image(图片号) = DOM\_image(图片名称) = S, DOM\_image(上传时间) = T\}
+
+F\_image = \{图片号 $\rightarrow$ 图片名称, 上传时间\}
+
+\subsubsection{联系}
+
+\paragraph{药品-药房}
+
+药品-药房(\{\underline{药品号}, \underline{药房号}, 药品数量\}, $D_{drug\_pharmacy}$, $DOM_{drug\_pharmacy}$, $F_{drug\_pharmacy}$)
+
+D\_drug\_pharmacy = \{S,N\}
+
+DOM\_drug\_pharmacy = \{DOM\_drug\_pharmacy(药品号) = DOM\_drug\_pharmacy(药房号) = S, \newline DOM\_drug\_pharmacy(药品数量) = N\}
+
+F\_drug\_pharmacy = \{药品号, 药房号 $\rightarrow$ 药品数量\}
+
+外键约束：药品号 $\rightarrow$ 药品(药品号), 药房号 $\rightarrow$ 药房(药房号)
 
 \subsection{关系模式范式等级的判定与规范化}
-% 在此处添加关系模式范式等级的判定与规范化内容,注：要规范到 3NF
+
+\subsubsection{实体}
+
+\paragraph{用户}
+
+用户(\{\underline{学工号}, 密码, 姓名, 性别, 出生日期, 身份证号, 用户类型, 手机号\})
+
+F = \{学工号 $\rightarrow$ 密码, 姓名, 性别, 出生日期, 身份证号, 用户类型, 手机号\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF 
+
+\paragraph{家属}
+
+家属(\{\underline{家属号}, 姓名, 性别, 出生日期, 身份证号\})
+
+F = \{家属号 $\rightarrow$ 姓名, 性别, 出生日期, 身份证号\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{医师}
+
+医师(\{\underline{医工号}, 密码, 姓名, 性别, 职称, 肖像, 介绍\})
+
+F = \{医工号 $\rightarrow$ 密码, 姓名, 性别, 职称, 肖像, 介绍\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{医院管理员}
+
+医院管理员(\{\underline{管理员号}, 密码, 姓名\})
+
+F = \{管理员号 $\rightarrow$ 密码, 姓名\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{科室}
+
+科室(\{\underline{科室号}, 科室名称\})
+
+F = \{科室号 $\rightarrow$ 科室名称\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{药房}
+
+药房(\{\underline{药房号}, 药房名称\})
+
+F = \{药房号 $\rightarrow$ 药房名称\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{药品}
+
+药品(\{\underline{药品号}, 药品名称, 药品价格\})
+
+F = \{药品号 $\rightarrow$ 药品名称, 药品价格\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{排班}
+
+排班(\{\underline{排班号}, 医工号, 科室号, 排班时间\})
+
+F = \{排班号 $\rightarrow$ 医工号, 科室号, 排班时间\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{体检安排}
+
+体检安排(\{\underline{体检号}, 体检项目, 体检日期, 负责医工号\})
+
+F = \{体检号 $\rightarrow$ 体检项目, 体检日期, 负责医工号\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{体检预约}
+
+体检预约(\{\underline{体检预约号}, 体检号, 学工号\})
+
+F = \{体检预约号 $\rightarrow$ 体检号, 学工号\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{体检结果}
+
+体检结果(\{\underline{体检号}, 体检结果\})
+
+F = \{体检号 $\rightarrow$ 体检结果\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{预约}
+
+预约(\{\underline{预约号}, 患者与预约人关系, 排班号, 学工号\})
+
+F = \{预约号 $\rightarrow$ 患者与预约人关系, 排班号, 学工号\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{诊断}
+
+诊断(\{\underline{诊断号}, 检查项目, 检查结果, 参考范围, 临床诊断, 处方号, 诊断时间, 患者身份证号, 预约号, 医工号\})
+
+F = \{诊断号 $\rightarrow$ 检查项目, 检查结果, 参考范围, 临床诊断, 处方号, 诊断时间, 患者身份证号, 预约号, 医工号\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{处方}
+
+处方(\{\underline{处方号}, 诊断号, 药品号, 药品数量, 用法用量, 注意事项\})
+
+F = \{处方号 $\rightarrow$ 诊断号, 药品号, 药品数量, 用法用量, 注意事项\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{通知}
+
+通知(\{\underline{通知号}, 通知内容, 通知时间, 接收人学工号\})
+
+F = \{通知号 $\rightarrow$ 通知内容, 通知时间, 接收人学工号\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{评价}
+
+评价(\{\underline{评价号}, 评价内容, 评价时间, 评价人学工号, 被评价人医工号\})
+
+F = \{评价号 $\rightarrow$ 评价内容, 评价时间, 评价人学工号, 被评价人医工号\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\subsubsection{联系}
+
+\paragraph{药品-药房}
+
+药品-药房(\{\underline{药品号}, \underline{药房号}, 药品数量\})
+
+F = \{药品号, 药房号 $\rightarrow$ 药品数量\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
 
 \subsection{数据库关系模式优化}
-% 在此处添加数据库关系模式优化内容
+
+\begin{enumerate}
+    \item 一个用户可以有多个家属，一个家属只能对应一个用户。这里的用户和家属是一对多的关系，可以将用户的学工号作为家属的外键，这样可以保证家属只能对应一个用户。均为1:n 关系。对这些关系，可以通过在 n 端实体中加入 1 端实体的 id，避免建立 1:n 联系表。
+    \item 一个医师的信息包含一个图片，一个评价也包含一个图片，一个通知也包含一个图片，一个药品信息也包含一个图片。这里的医师和图片，评价和图片等关系是一对一的关系，可以将图片的 id 作为医师和评价的外键，避免建立 1:1 联系表。
+    \item 最后只剩下了药品药房关系，这是一个 m:n 关系，需要建立联系表。
+\end{enumerate}
 
 \section{数据库物理设计}
 % 在此处说明所选择的存取方法，给出索引定义
+
+\subsection{存取方法}
+
+\subsection{索引定义}
+
+\subsection{优化查询语句}
+
+\subsection{数据库存储过程}
+
+\subsection{数据库外模式（视图）}
+
+\subsection{数据库变量类型选择}
 
 \end{document}
