@@ -54,7 +54,7 @@
     \hline
     孟烜宇& & & & \\
     \hline
-    余欣实& 0 & 0 & 0 & 0 \\
+    余欣实& & & & \\
     \hline
     曹玮琳& & & & \\
     \hline
@@ -276,7 +276,8 @@
     姓名 & name & varchar(15) & 非空 \\ \midrule
     性别 & gender & char(1) & 非空 \\ \midrule
     职称 & title & varchar(10) & 非空 \\ \midrule
-    介绍 & introduction & varchar(500) & 非空 \\ \bottomrule
+    肖像 & portrait\_path & varchar(255) & 非空 \\ \midrule
+    介绍 & introduction & text & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{医师用户数据元素表}
     \label{tab:doctor_user_elements}
@@ -288,6 +289,7 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     医工号 & staff\_id & char(5) & 主键 \\ \midrule
+    姓名 & name & varchar(15) & 非空 \\ \midrule
     密码 & password & varchar(25) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{管理员数据元素表}
@@ -299,15 +301,27 @@
     \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
-    学工号 & id & char(8) & 主键 \\ \midrule
     家属号 & family\_id & varchar(2) & 主键 \\ \midrule
-    家属姓名 & name & varchar(15) & 非空 \\ \midrule
-    家属性别 & gender & char(1) & 非空 \\ \midrule
-    家属出生日期 & birth & date & 非空 \\ \midrule
-    家属身份证号 & id\_number & varchar(18) & 非空 \\ \bottomrule
+    姓名 & name & varchar(15) & 非空 \\ \midrule
+    性别 & gender & char(1) & 非空 \\ \midrule
+    出生日期 & birth & date & 非空 \\ \midrule
+    身份证号 & id\_number & varchar(18) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{家属数据元素表}
     \label{tab:family_user_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    学工号 & id & char(8) & 主键 \\ \midrule
+    家属号 & family\_id & varchar(2) & 主键 \\ \midrule
+    关系 & relationship & varchar(10) & 非空 \\ \bottomrule
+    \end{tabularx}
+    \caption{家属关系数据元素表}
+    \label{tab:family_relationship_elements}
 \end{table}
 
 \subsubsection{医疗系统部分}
@@ -332,8 +346,8 @@
     排班号 & schedule\_id & char(8) & 主键 \\ \midrule
     医工号 & staff\_id & char(5) & 非空 \\ \midrule
     科室号 & department\_id & char(3) & 非空 \\ \midrule
-    排班时间 & schedule\_time & datetime & 非空 \\ \midrule
-    排班日期 & schedule\_date & date & 非空 \\ \bottomrule
+    排班时间 & schedule\_time & datetime & 非空 \\
+     \bottomrule
     \end{tabularx}
     \caption{排班数据元素表}
     \label{tab:schedule_elements}
@@ -358,8 +372,7 @@
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
     药品名称 & drug\_name & varchar(20) & 非空 \\ \midrule
-    药品价格 & price & float & 非空 \\ \midrule
-    药房号 & pharmacy\_id & varchar(2) & 非空 \\ \bottomrule
+    药品价格 & price & float & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{药品数据元素表}
     \label{tab:drug_elements}
@@ -372,7 +385,7 @@
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
     药品数量 & drug\_amount & int & 非空 \\ \midrule
-    药房号 & pharmacy\_id & varchar(2) & 非空 \\ \bottomrule
+    药房号 & pharmacy\_id & varchar(2) & 主键 \\ \bottomrule
     \end{tabularx}
     \caption{药品库存数据元素表}
     \label{tab:drug_storage_elements}
@@ -400,12 +413,10 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     体检号 & examination\_id & varchar(8) & 主键 \\ \midrule
-    体检项目 & examination & text & 非空 \\ \midrule
     体检结果 & examination\_result & text & 非空 \\ \midrule
-    体检日期 & examination\_date & date & 非空 \\ \midrule
     学工号 & id & char(8) & 主键 \\ \bottomrule
     \end{tabularx}
-    \caption{体检数据元素表}
+    \caption{体检结果数据元素表}
     \label{tab:examination_elements}
 \end{table}
 
@@ -415,14 +426,23 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     预约号 & appointment\_id & varchar(8) & 主键 \\ \midrule
-    预约时间 & appointment\_time & datetime & 非空 \\ \midrule
-    预约类型 & appointment\_type & varchar(10) & 非空 \\ \midrule
-    医工号 & staff\_id & varchar(8) & 非空 \\ \midrule
     患者与预约人关系 & relationship & varchar(10) & 非空 \\ \midrule
     学工号 & id & varchar(8) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{预约数据元素表}
     \label{tab:appointment_elements}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+    \toprule
+    \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
+    预约号 & appointment\_id & varchar(8) & 主键 \\ \midrule
+    排班号 & schedule\_id & char(8) & 非空 \\ \midrule
+    \end{tabularx}
+    \caption{预约排班数据元素表}
+    \label{tab:appointment_schedule_elements}
 \end{table}
 
 \begin{table}[H]
@@ -436,10 +456,9 @@
     参考范围 & reference & text & 非空 \\ \midrule
     临床诊断 & clinical\_diagnosis & text & 非空 \\ \midrule
     处方号 & prescription\_id & varchar(8) & 非空 \\ \midrule
-    诊断日期 & diagnosis\_date & date & 非空 \\ \midrule
     诊断时间 & diagnosis\_time & datetime & 非空 \\ \midrule
     患者身份证号 & id\_number & varchar(18) & 非空 \\ \midrule
-    诊断医工号 & staff\_id & char(5) & 主键 \\ \bottomrule
+    医工号 & staff\_id & char(5) & 主键 \\ \bottomrule
     \end{tabularx}
     \caption{诊断数据元素表}
     \label{tab:diagnosis_elements}
@@ -453,7 +472,8 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     处方号 & prescription\_id & varchar(8) & 主键 \\ \midrule
-    药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
+    诊断号 & diagnosis\_id & varchar(8) & 非空\\ \midrule
+    药品号 & drug\_id & varchar(9) & 非空 \\ \midrule
     药品数量 & drug\_amount & int & 非空 \\ \midrule
     用法用量 & usage & text & 非空 \\ \midrule
     注意事项 & precautions & text & 非空 \\ \bottomrule
@@ -494,11 +514,56 @@
 \end{table}
 
 \section{数据库概念模式设计}
+
+\subsection{系统分E-R 图}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/dividedER1.png}
+    \caption{系统分 E-R 图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/dividedER2.png}
+    \caption{系统分 E-R 图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/dividedER3.png}
+    \caption{系统分 E-R 图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/dividedER4.png}
+    \caption{系统分 E-R 图}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/dividedER5.png}
+    \caption{系统分 E-R 图}
+\end{figure}
+
 \subsection{系统初步E-R 图}
 % 在此处添加系统初步E-R 图
 
+\begin{figure}
+    \centering
+    % \includegraphics[width=0.8\textwidth]{images/initER.png}
+    \caption{系统初步 E-R 图}
+\end{figure}
+
 \subsection{系统基本 E-R 图}
 % 在此处添加系统基本 E-R 图
+
+\begin{figure}
+    \centering
+    % \includegraphics[width=0.8\textwidth]{images/basicER.png}
+    \caption{系统基本 E-R 图}
+\end{figure}
 
 \section{数据库逻辑模式设计与优化}
 \subsection{数据库关系模式定义}
