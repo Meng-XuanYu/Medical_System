@@ -361,7 +361,6 @@
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     药品号 & drug\_id & varchar(9) & 主键 \\ \midrule
     药品名称 & drug\_name & varchar(20) & 非空 \\ \midrule
-    图片号 & image\_id & varchar(10) &  \\ \midrule
     药品价格 & price & float & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{药品数据元素表}
@@ -472,7 +471,6 @@
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     通知号 & notification\_id & varchar(8) & 主键 \\ \midrule
     通知内容 & notification & text & 非空 \\ \midrule
-    图片号 & image\_id & varchar(10) &  \\ \midrule
     通知时间 & notification\_time & datetime & 非空 \\ \midrule
     接收人学工号 & staff\_id & varchar(8) & 非空 \\ \bottomrule
     \end{tabularx}
@@ -489,7 +487,6 @@
     评价内容 & evaluation & text & 非空 \\ \midrule
     评价时间 & evaluation\_time & datetime & 非空 \\ \midrule
     评价人学工号 & id & varchar(8) & 非空 \\ \midrule
-    图片号 & image\_id & varchar(10) &  \\ \midrule
     被评价人医工号 & staff\_id & char(5) & 非空 \\ \bottomrule
     \end{tabularx}
     \caption{评价数据元素表}
@@ -502,8 +499,10 @@
     \toprule
     \textbf{属性名} & \textbf{字段名} & \textbf{数据类型} & \textbf{约束} \\ \midrule
     图片号 & image\_id & varchar(10) & 主键 \\ \midrule
-    图片名称 & image\_name & varchar(20) & 非空 \\ \midrule
-    上传时间 & upload\_time & datetime &  \\ \midrule
+    存储路径 & image\_path & varchar(255) & 非空 \\ \midrule
+    评价号 & evaluation\_id & varchar(8) &  \\ \midrule
+    通知号 & notification\_id & varchar(8) &  \\ \midrule
+    药品号 & drug\_id & varchar(9) &  \\ \bottomrule
     \end{tabularx}
     \caption{图片数据元素表}
     \label{tab:image_elements}
@@ -651,13 +650,13 @@ F\_pharmacy = \{药房号 $\rightarrow$ 药房名称\}
 
 \paragraph{药品}
 
-药品(\{\underline{药品号}, 药品名称, 图片号, 药品价格\}, $D_{drug}$, $DOM_{drug}$, $F_{drug}$)
+药品(\{\underline{药品号}, 药品名称,  药品价格\}, $D_{drug}$, $DOM_{drug}$, $F_{drug}$)
 
 D\_drug = \{S\}
 
-DOM\_drug = \{DOM\_drug(药品号) = DOM\_drug(药品名称) = DOM\_drug(图片号) = S, \newline DOM\_drug(药品价格) = N\}
+DOM\_drug = \{DOM\_drug(药品号) = DOM\_drug(药品名称) = S, DOM\_drug(药品价格) = N\}
 
-F\_drug = \{药品号 $\rightarrow$ 药品名称, 图片号, 药品价格\}
+F\_drug = \{药品号 $\rightarrow$ 药品名称, 药品价格\}
 
 \paragraph{排班}
 
@@ -721,33 +720,33 @@ F\_prescription = \{处方号 $\rightarrow$ 诊断号, 药品号, 药品数量, 
 
 \paragraph{通知}
 
-通知(\{\underline{通知号}, 通知内容, 通知时间, 接收人学工号, 图片号\}, $D_{notification}$, \newline $DOM_{notification}$, $F_{notification}$)
+通知(\{\underline{通知号}, 通知内容, 通知时间, 接收人学工号 \}, $D_{notification}$, \newline $DOM_{notification}$, $F_{notification}$)
 
 D\_notification = \{S,DT\}
 
-DOM\_notification = \{DOM\_notification(通知号) = DOM\_notification(通知内容) = S, \newline DOM\_notification(通知时间) = DT, DOM\_notification(接收人学工号) = DOM\_notification(图片号) = S\}
+DOM\_notification = \{DOM\_notification(通知号) = DOM\_notification(通知内容) = S, \newline DOM\_notification(通知时间) = DT, DOM\_notification(接收人学工号) = S\}
 
-F\_notification = \{通知号 $\rightarrow$ 通知内容, 通知时间, 接收人学工号, 图片号\}
+F\_notification = \{通知号 $\rightarrow$ 通知内容, 通知时间, 接收人学工号\}
 
 \paragraph{评价}
 
-评价(\{\underline{评价号}, 评价内容, 评价时间, 评价人学工号, 被评价人医工号, 图片号\}, $D_{evaluation}$, \newline $DOM_{evaluation}$, $F_{evaluation}$)
+评价(\{\underline{评价号}, 评价内容, 评价时间, 评价人学工号, 被评价人医工号\}, $D_{evaluation}$, \newline $DOM_{evaluation}$, $F_{evaluation}$)
 
 D\_evaluation = \{S,DT\}
 
-DOM\_evaluation = \{DOM\_evaluation(评价号) = DOM\_evaluation(评价内容) = S, \newline DOM\_evaluation(评价时间) = DT, DOM\_evaluation(评价人学工号) = DOM\_evaluation(被评价人医工号) = DOM\_evaluation(图片号) = S\}
+DOM\_evaluation = \{DOM\_evaluation(评价号) = DOM\_evaluation(评价内容) = S, \newline DOM\_evaluation(评价时间) = DT, DOM\_evaluation(评价人学工号) = DOM\_evaluation(被评价人医工号) = S\}
 
-F\_evaluation = \{评价号 $\rightarrow$ 评价内容, 评价时间, 评价人学工号, 被评价人医工号, 图片号\}
+F\_evaluation = \{评价号 $\rightarrow$ 评价内容, 评价时间, 评价人学工号, 被评价人医工号\}
 
 \paragraph{图片}
 
-图片(\{\underline{图片号}, 图片名称, 上传时间\}, $D_{image}$, $DOM_{image}$, $F_{image}$)
+图片(\{\underline{图片号}, 存储路径, 评价号, 通知号, 药品号\}, $D_{image}$, $DOM_{image}$, $F_{image}$)
 
-D\_image = \{S,T\}
+D\_image = \{S\}
 
-DOM\_image = \{DOM\_image(图片号) = DOM\_image(图片名称) = S, DOM\_image(上传时间) = T\}
+DOM\_image = \{DOM\_image(图片号) = DOM\_image(存储路径) = S, DOM\_image(评价号) =\newline DOM\_image(通知号) = DOM\_image(药品号) = S\}
 
-F\_image = \{图片号 $\rightarrow$ 图片名称, 上传时间\}
+F\_image = \{图片号 $\rightarrow$ 存储路径, 评价号, 通知号, 药品号\}
 
 \subsubsection{联系}
 
@@ -785,9 +784,9 @@ F = \{家属号 $\rightarrow$ 姓名, 性别, 出生日期, 身份证号\}
 
 \paragraph{医师}
 
-医师(\{\underline{医工号}, 密码, 姓名, 性别, 职称, 肖像, 介绍\})
+医师(\{\underline{医工号}, 密码, 姓名, 性别, 职称, 图片号, 介绍\})
 
-F = \{医工号 $\rightarrow$ 密码, 姓名, 性别, 职称, 肖像, 介绍\}
+F = \{医工号 $\rightarrow$ 密码, 姓名, 性别, 职称, 图片号, 介绍\}
 
 对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
 
@@ -892,6 +891,14 @@ F = \{通知号 $\rightarrow$ 通知内容, 通知时间, 接收人学工号\}
 评价(\{\underline{评价号}, 评价内容, 评价时间, 评价人学工号, 被评价人医工号\})
 
 F = \{评价号 $\rightarrow$ 评价内容, 评价时间, 评价人学工号, 被评价人医工号\}
+
+对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
+
+\paragraph{图片}
+
+图片(\{\underline{图片号}, 存储路径, 评价号, 通知号, 药品号\})
+
+F = \{图片号 $\rightarrow$ 存储路径, 评价号, 通知号, 药品号\}
 
 对于该表，所有函数依赖左端都是主码，所以属于 BCNF ，因此也属于 3NF
 
