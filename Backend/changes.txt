@@ -1,0 +1,1 @@
+所有char替换成varchar
