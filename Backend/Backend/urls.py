@@ -23,4 +23,5 @@ from MedicalSystem import views as ms_views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("login/", ms_views.login),
+    path("orm/", ms_views.orm),
 ]

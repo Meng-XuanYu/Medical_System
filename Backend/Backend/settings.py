@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'corsheaders',  # 添加跨域头
     "MedicalSystem",
 ]
 
@@ -46,6 +47,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',  # 配置跨域中间件
+]
+
+# 允许特定来源的跨域请求（可替换为前端应用的实际域名）
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",  # Vue 应用的默认开发端口
 ]
 
 ROOT_URLCONF = "Backend.urls"
@@ -72,13 +79,24 @@ WSGI_APPLICATION = "Backend.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
+    #     'NAME': 'medical_system',  # 数据库名称
+    #     'HOST': '127.0.0.1',  # 数据库地址，本机 ip 地址 127.0.0.1
+    #     'PORT': 3306,  # 端口
+    #     'USER': 'root',  # 数据库用户名
+    #     'PASSWORD': '123456',  # 数据库密码
+    # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-        'NAME': 'medical_system',  # 数据库名称
-        'HOST': '127.0.0.1',  # 数据库地址，本机 ip 地址 127.0.0.1
+        'NAME': 'h_db22373040',  # 数据库名称
+        'HOST': '120.46.3.97',  # 数据库地址
         'PORT': 3306,  # 端口
-        'USER': 'root',  # 数据库用户名
-        'PASSWORD': '123456',  # 数据库密码
+        'USER': 'u22373040',  # 数据库用户名
+        'PASSWORD': '',  # 数据库密码
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
