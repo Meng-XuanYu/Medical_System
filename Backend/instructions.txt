@@ -1,3 +1,5 @@
 python manage.py migrate
 python manage.py makemigrations MedicalSystem
 python manage.py migrate MedicalSystem
+
+python manage.py runserver 0.0.0.0:8000

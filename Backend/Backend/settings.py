@@ -24,7 +24,7 @@ SECRET_KEY = "django-insecure-)91d2q9x#3qd#2snnb$%*3dw0s=5%)6a5g-vjwy@erdjdxqp5o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -42,17 +42,12 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    'corsheaders.middleware.CorsMiddleware',  # 配置跨域中间件
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'corsheaders.middleware.CorsMiddleware',  # 配置跨域中间件
-]
-
-# 允许特定来源的跨域请求（可替换为前端应用的实际域名）
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",  # Vue 应用的默认开发端口
 ]
 
 ROOT_URLCONF = "Backend.urls"
@@ -79,25 +74,25 @@ WSGI_APPLICATION = "Backend.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-    #     'NAME': 'medical_system',  # 数据库名称
-    #     'HOST': '127.0.0.1',  # 数据库地址，本机 ip 地址 127.0.0.1
-    #     'PORT': 3306,  # 端口
-    #     'USER': 'root',  # 数据库用户名
-    #     'PASSWORD': '123456',  # 数据库密码
-    # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-        'NAME': 'h_db22373040',  # 数据库名称
-        'HOST': '120.46.3.97',  # 数据库地址
+        'NAME': 'medical_system',  # 数据库名称
+        'HOST': '127.0.0.1',  # 数据库地址，本机 ip 地址 127.0.0.1
         'PORT': 3306,  # 端口
-        'USER': 'u22373040',  # 数据库用户名
-        'PASSWORD': '',  # 数据库密码
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        'USER': 'root',  # 数据库用户名
+        'PASSWORD': '123456',  # 数据库密码
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
+    #     'NAME': 'h_db22373040',  # 数据库名称
+    #     'HOST': '120.46.3.97',  # 数据库地址
+    #     'PORT': 3306,  # 端口
+    #     'USER': 'u22373040',  # 数据库用户名
+    #     'PASSWORD': 'Aa873680',  # 数据库密码
+    #     'OPTIONS': {
+    #         'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+    #     },
+    # }
 }
 
 # Password validation
@@ -138,3 +133,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = ('*')
+
+AUTH_USER_MODEL = 'MedicalSystem.User'
