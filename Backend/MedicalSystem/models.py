@@ -1,20 +1,38 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
 from django.db import models
 
 
-# 表 1: 用户数据元素表
+# 用户抽象类
+class BaseUser(AbstractBaseUser, PermissionsMixin):
+    # 公共字段
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True  # 设置为抽象类，防止创建数据表
+
+
 class UserManager(BaseUserManager):
-    def create_user(self, id, password=None, **extra_fields):
+    def create_base_user(self, base_user_type, id, password=None, **extra_fields):
         if not id:
             raise ValueError("必须提供用户ID")
 
+        if base_user_type == "user":
+            user = self.model(id=id, **extra_fields)
+        elif base_user_type == "doctor":
+            user = self.model(staff_id=id, **extra_fields)
+        elif base_user_type == "admin":
+            user = self.model(admin_id=id, **extra_fields)
+        else:
+            print(base_user_type + "is not a valid base user type!")
+            raise ValueError
+
         # 设置用户密码
-        user = self.model(id=id, **extra_fields)
         user.set_password(password)  # 对密码进行哈希处理
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, id, password=None, **extra_fields):
+    def create_base_superuser(self, id, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -24,10 +42,11 @@ class UserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError("超级用户必须设置 is_superuser=True")
 
-        return self.create_user(id, password, **extra_fields)
+        return self.create_base_user(id, password, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+# 表 1: 用户数据元素表
+class User(BaseUser):
     id = models.CharField(max_length=8, primary_key=True, unique=True)  # 学工号：主键
     password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空，128个字符用于加密后的存储
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
@@ -37,9 +56,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     user_type = models.CharField(max_length=1, null=False, blank=False)  # 用户类型：非空
     phone = models.CharField(max_length=11, null=False, blank=False)  # 手机号：非空
 
-    # 必需的权限字段
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    # 用户权限设置
+    groups = models.ManyToManyField(Group, related_name="user_groups")
+    user_permissions = models.ManyToManyField(Permission, related_name="user_permissions")
 
     # 指定用户ID作为登录字段
     USERNAME_FIELD = 'id'
@@ -63,23 +82,82 @@ class User(AbstractBaseUser, PermissionsMixin):
             'phone': 11
         }
 
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
 
 # 表 2: 医师用户数据元素表
-class Doctor(models.Model):
+class Doctor(BaseUser):
     staff_id = models.CharField(max_length=5, primary_key=True, unique=True)  # 医工号：主键
-    password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空
+    password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空，128个字符用于加密后的存储
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
     title = models.CharField(max_length=10, null=False, blank=False)  # 职称：非空
     image_id = models.CharField(max_length=10, null=True, blank=True)  # 图片号：可空
-    introduction = models.TextField(null=False, blank=False)  # 介绍：非空
+    introduction = models.TextField(null=False, blank=False)  # 介绍：可空
+
+    # 医师权限设置
+    groups = models.ManyToManyField(Group, related_name="doctor_groups")
+    user_permissions = models.ManyToManyField(Permission, related_name="doctor_permissions")
+
+    # 使医生的用户名字段指向 staff_id
+    USERNAME_FIELD = 'staff_id'
+    REQUIRED_FIELDS = ['name', 'gender', 'title']
+
+    objects = UserManager()
+
+    def __str__(self):
+        return self.id
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'staff_id': 5,
+            'password': 128,
+            'name': 15,
+            'gender': 1,
+            'title': 10
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {
+            'image_id': 10,  # 图片号为可选字段
+            'introduction': None  # 介绍为 TextField，无固定长度
+        }
 
 
 # 表 3: 管理员数据元素表
-class Admin(models.Model):
+class Admin(BaseUser):
     admin_id = models.CharField(max_length=3, primary_key=True, unique=True)  # 管理员号：主键
+    password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空，128个字符用于加密后的存储
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
-    password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空
+
+    # 管理员权限设置
+    groups = models.ManyToManyField(Group, related_name="admin_groups")
+    user_permissions = models.ManyToManyField(Permission, related_name="admin_permissions")
+
+    # 设置管理员登录字段为 admin_id
+    USERNAME_FIELD = 'admin_id'
+    REQUIRED_FIELDS = ['name']
+
+    objects = UserManager()
+
+    def __str__(self):
+        return self.id
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'admin_id': 3,
+            'name': 15,
+            'password': 128
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
 
 
 # 表 4: 家属数据元素表

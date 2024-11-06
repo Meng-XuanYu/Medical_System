@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+</head>
+<body>
+<h1>管理员登录</h1>
+<form id="adminLoginForm">
+    <label for="admin_id">管理员号:</label>
+    <input type="text" id="admin_id" name="admin_id" required>
+    <br><br>
+    <label for="password">密码:</label>
+    <input type="password" id="password" name="password" required>
+    <br><br>
+    <button type="button" onclick="adminLogin()">登录</button>
+    <button type="button" onclick="logout()">退出登录</button>
+</form>
+
+<p id="message"></p>
+
+<script>
+    async function adminLogin() {
+        const admin_id = document.getElementById('admin_id').value;
+        const password = document.getElementById('password').value;
+
+        const response = await fetch('/api/admin/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({admin_id, password}),
+            credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+        document.getElementById('message').textContent = result.message;
+    }
+
+    async function logout() {
+        const response = await fetch('/api/admin/logout/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+        document.getElementById('message').textContent = result.message;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+</body>
+</html>
