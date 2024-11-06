@@ -92,6 +92,10 @@ def user_register(request):
 @csrf_exempt  # 临时禁用 CSRF 检查
 def user_login(request):
     if request.method == 'POST':
+        # 检查当前用户是否已登录
+        if request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': '当前已登录'}, status=400)
+
         try:
             data = json.loads(request.body)  # 从请求体解析 JSON 数据
 
@@ -121,7 +125,7 @@ def user_logout(request):
     if request.method == 'POST':
         # 检查用户是否已登录
         if not request.user.is_authenticated:
-            return JsonResponse({'status': 'error', 'message': '用户未登录'}, status=400)
+            return JsonResponse({'status': 'error', 'message': '当前未登录'}, status=400)
 
         # 执行退出登录操作
         logout(request)
@@ -133,6 +137,10 @@ def user_logout(request):
 @csrf_exempt  # 临时禁用 CSRF 检查
 def doctor_register(request):
     if request.method == 'POST':
+        # 确保当前用户已登录，并且用户类型是 Admin
+        if not request.user.is_authenticated or getattr(request.user, 'admin_id', None) is None:
+            return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
         try:
             data = json.loads(request.body)  # 从请求体解析 JSON 数据
 
@@ -165,6 +173,10 @@ def doctor_register(request):
 @csrf_exempt  # 临时禁用 CSRF 检查
 def doctor_login(request):
     if request.method == 'POST':
+        # 检查当前用户是否已登录
+        if request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': '当前已登录'}, status=400)
+
         try:
             data = json.loads(request.body)  # 从请求体解析 JSON 数据
 
@@ -195,7 +207,7 @@ def doctor_logout(request):
     if request.method == 'POST':
         # 检查用户是否已登录
         if not request.user.is_authenticated:
-            return JsonResponse({'status': 'error', 'message': '医生未登录'}, status=400)
+            return JsonResponse({'status': 'error', 'message': '当前未登录'}, status=400)
 
         # 执行退出登录操作
         logout(request)
@@ -207,6 +219,10 @@ def doctor_logout(request):
 @csrf_exempt  # 临时禁用 CSRF 检查
 def admin_register(request):
     if request.method == 'POST':
+        # 确保当前用户已登录，并且用户类型是 Admin
+        if not request.user.is_authenticated or getattr(request.user, 'admin_id', None) is None:
+            return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
         try:
             data = json.loads(request.body)  # 从请求体解析 JSON 数据
 
@@ -235,6 +251,10 @@ def admin_register(request):
 @csrf_exempt  # 临时禁用 CSRF 检查
 def admin_login(request):
     if request.method == 'POST':
+        # 检查当前用户是否已登录
+        if request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': '当前已登录'}, status=400)
+
         try:
             data = json.loads(request.body)  # 从请求体解析 JSON 数据
 
@@ -264,7 +284,7 @@ def admin_logout(request):
     if request.method == 'POST':
         # 检查用户是否已登录
         if not request.user.is_authenticated:
-            return JsonResponse({'status': 'error', 'message': '管理员未登录'}, status=400)
+            return JsonResponse({'status': 'error', 'message': '当前未登录'}, status=400)
 
         # 执行退出登录操作
         logout(request)

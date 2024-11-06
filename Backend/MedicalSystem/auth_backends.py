@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import check_password
 
 class UserBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        if kwargs.get("base_user_type") is not "user":
+        if kwargs.get("base_user_type") != "user":
             return None  # 不是用户登录，不继续处理
 
         try:
@@ -24,7 +24,7 @@ class UserBackend(BaseBackend):
 
 class DoctorBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        if kwargs.get("base_user_type") is not "doctor":
+        if kwargs.get("base_user_type") != "doctor":
             return None  # 不是用户登录，不继续处理
 
         try:
@@ -43,7 +43,7 @@ class DoctorBackend(BaseBackend):
 
 class AdminBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        if kwargs.get("base_user_type") is not "admin":
+        if kwargs.get("base_user_type") != "admin":
             return None  # 不是用户登录，不继续处理
 
         try:
