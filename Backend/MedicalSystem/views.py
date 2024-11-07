@@ -5,9 +5,14 @@ from .models import *
 from django.db import DataError
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from .auth_backends import *
 import json
 
 home_url = "login/"
+
+
+def homepage(request):
+    return render(request, 'homepage.html')
 
 
 def user_register_page(request):
@@ -312,3 +317,36 @@ def fields_check(model_class, data):
             if max_length and len(data[field]) > max_length:
                 return JsonResponse({'status': 'error', 'message': f'{field}长度不能超过{max_length}个字符'},
                                     status=400)
+
+
+# 测试用函数
+def get_user_info(request):
+    if request.method == "GET":
+        # 检查用户是否已登录
+        if not request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': '当前未登录'}, status=400)
+
+        user = request.user
+        if getattr(user, 'id', None) is not None:
+            user_info = {
+                "base_user_type": "user",
+                "id": user.id,
+                "name": user.name
+            }
+            return JsonResponse(user_info)
+        elif getattr(user, 'doctor_id', None) is not None:
+            user_info = {
+                "base_user_type": "doctor",
+                "id": user.doctor_id,
+                "name": user.name
+            }
+            return JsonResponse(user_info)
+        elif getattr(user, 'admin_id', None) is not None:
+            user_info = {
+                "base_user_type": "admin",
+                "id": user.admin_id,
+                "name": user.name
+            }
+            return JsonResponse(user_info)
+
+    return JsonResponse({'status': 'error', 'message': '仅支持 GET 请求'}, status=405)

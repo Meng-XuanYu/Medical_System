@@ -25,7 +25,7 @@ class UserBackend(BaseBackend):
 class DoctorBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         if kwargs.get("base_user_type") != "doctor":
-            return None  # 不是用户登录，不继续处理
+            return None  # 不是医生登录，不继续处理
 
         try:
             doctor = Doctor.objects.get(staff_id=username)
@@ -44,7 +44,7 @@ class DoctorBackend(BaseBackend):
 class AdminBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         if kwargs.get("base_user_type") != "admin":
-            return None  # 不是用户登录，不继续处理
+            return None  # 不是管理员登录，不继续处理
 
         try:
             admin = Admin.objects.get(admin_id=username)

@@ -15,6 +15,8 @@
     <br><br>
     <button type="button" onclick="adminLogin()">登录</button>
     <button type="button" onclick="logout()">退出登录</button>
+    <br><br>
+    <button type="button" onclick="goToHomepage()">回到主页</button>
 </form>
 
 <p id="message"></p>
@@ -49,6 +51,10 @@
 
         const result = await response.json();
         document.getElementById('message').textContent = result.message;
+    }
+
+    function goToHomepage() {
+        window.location.href = {% url 'homepage' %};
     }
 
     function getCookie(name) {

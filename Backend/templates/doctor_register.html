@@ -29,6 +29,8 @@
     <textarea id="introduction" name="introduction"></textarea>
     <br><br>
     <button type="button" onclick="doctorRegister()">注册</button>
+    <br><br>
+    <button type="button" onclick="goToHomepage()">回到主页</button>
 </form>
 
 <p id="message"></p>
@@ -57,6 +59,10 @@
 
         const result = await response.json();
         document.getElementById('message').textContent = result.message;
+    }
+
+    function goToHomepage() {
+        window.location.href = {% url 'homepage' %};
     }
 
     function getCookie(name) {

@@ -144,7 +144,7 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_SAVE_EVERY_REQUEST = True
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',  # 默认用户认证后端
+    'MedicalSystem.auth_backends.UserBackend',  # 自定义用户认证后端
     'MedicalSystem.auth_backends.DoctorBackend',  # 自定义医生认证后端
     'MedicalSystem.auth_backends.AdminBackend',  # 自定义管理员认证后端
 ]

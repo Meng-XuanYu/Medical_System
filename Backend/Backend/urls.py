@@ -21,6 +21,7 @@ from MedicalSystem import views as ms_views
 
 urlpatterns = [
     # path("admin/", admin.site.urls),
+    path('homepage/', ms_views.homepage, name='homepage'),
     path("register/user/", ms_views.user_register_page),
     path("register/doctor/", ms_views.doctor_register_page),
     path("register/admin/", ms_views.admin_register_page),
@@ -36,4 +37,7 @@ urlpatterns = [
     path('api/admin/register/', ms_views.admin_register),
     path('api/admin/login/', ms_views.admin_login),
     path('api/admin/logout/', ms_views.admin_logout),
+
+    # 测试用函数
+    path('api/user/info/', ms_views.get_user_info),
 ]

@@ -73,7 +73,7 @@ class User(BaseUser):
     def get_required_fields(cls):
         return {
             'id': 8,
-            'password': 25,
+            'password': 128,
             'name': 15,
             'gender': 1,
             'birth': None,  # 日期字段无需长度限制
@@ -151,8 +151,8 @@ class Admin(BaseUser):
     def get_required_fields(cls):
         return {
             'admin_id': 3,
-            'name': 15,
-            'password': 128
+            'password': 128,
+            'name': 15
         }
 
     @classmethod
