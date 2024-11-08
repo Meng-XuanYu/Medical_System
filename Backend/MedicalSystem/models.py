@@ -70,21 +70,43 @@ class User(BaseUser):
         return self.id
 
     @classmethod
-    def get_required_fields(cls):
-        return {
-            'id': 8,
-            'password': 128,
-            'name': 15,
-            'gender': 1,
-            'birth': None,  # 日期字段无需长度限制
-            'id_number': 18,
-            'user_type': 1,
-            'phone': 11
-        }
+    def get_required_fields(cls, use_password):
+        if use_password:
+            return {
+                'id': 8,
+                'password': 128,
+                'name': 15,
+                'gender': 1,
+                'birth': None,  # 日期字段无需长度限制
+                'id_number': 18,
+                'user_type': 1,
+                'phone': 11
+            }
+        else:
+            return {
+                'id': 8,
+                'name': 15,
+                'gender': 1,
+                'birth': None,  # 日期字段无需长度限制
+                'id_number': 18,
+                'user_type': 1,
+                'phone': 11
+            }
 
     @classmethod
     def get_optional_fields(cls):
         return {}
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'gender': self.gender,
+            'birth': self.birth,
+            'id_number': self.id_number,
+            'user_type': self.user_type,
+            'phone': self.phone
+        }
 
 
 # 表 2: 医师用户数据元素表
@@ -111,20 +133,38 @@ class Doctor(BaseUser):
         return self.id
 
     @classmethod
-    def get_required_fields(cls):
-        return {
-            'staff_id': 5,
-            'password': 128,
-            'name': 15,
-            'gender': 1,
-            'title': 10
-        }
+    def get_required_fields(cls, use_password):
+        if use_password:
+            return {
+                'staff_id': 5,
+                'password': 128,
+                'name': 15,
+                'gender': 1,
+                'title': 10
+            }
+        else:
+            return {
+                'staff_id': 5,
+                'name': 15,
+                'gender': 1,
+                'title': 10
+            }
 
     @classmethod
     def get_optional_fields(cls):
         return {
             'image_id': 10,  # 图片号为可选字段
             'introduction': None  # 介绍为 TextField，无固定长度
+        }
+
+    def get_view_dic(self):
+        return {
+            'staff_id': self.staff_id,
+            'name': self.name,
+            'gender': self.gender,
+            'title': self.title,
+            'image_id': self.image_id,
+            'introduction': self.introduction
         }
 
 
@@ -148,16 +188,28 @@ class Admin(BaseUser):
         return self.id
 
     @classmethod
-    def get_required_fields(cls):
-        return {
-            'admin_id': 3,
-            'password': 128,
-            'name': 15
-        }
+    def get_required_fields(cls, use_password):
+        if use_password:
+            return {
+                'admin_id': 3,
+                'password': 128,
+                'name': 15
+            }
+        else:
+            return {
+                'admin_id': 3,
+                'name': 15
+            }
 
     @classmethod
     def get_optional_fields(cls):
         return {}
+
+    def to_dict(self):
+        return {
+            'admin_id': self.admin_id,
+            'name': self.name
+        }
 
 
 # 表 4: 家属数据元素表

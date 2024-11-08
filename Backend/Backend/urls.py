@@ -28,6 +28,8 @@ urlpatterns = [
     path("login/user/", ms_views.user_login_page),
     path("login/doctor/", ms_views.doctor_login_page),
     path("login/admin/", ms_views.admin_login_page),
+    path("view/doctors/", ms_views.view_doctors_page, name='view_doctors'),
+    path("edit/doctor/", ms_views.edit_doctor_page),
     path('api/user/register/', ms_views.user_register),
     path('api/user/login/', ms_views.user_login),
     path('api/user/logout/', ms_views.user_logout),
@@ -37,6 +39,9 @@ urlpatterns = [
     path('api/admin/register/', ms_views.admin_register),
     path('api/admin/login/', ms_views.admin_login),
     path('api/admin/logout/', ms_views.admin_logout),
+    path("api/view/doctor/", ms_views.view_doctor),
+    path('api/view/doctors/', ms_views.view_doctors),
+    path('api/edit/doctor/', ms_views.edit_doctor),
 
     # 测试用函数
     path('api/user/info/', ms_views.get_user_info),
