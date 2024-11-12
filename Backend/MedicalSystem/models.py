@@ -6,7 +6,7 @@ from django.db import models
 class BaseUser(AbstractBaseUser, PermissionsMixin):
     # 公共字段
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_doctor = models.BooleanField(default=False)
 
     class Meta:
         abstract = True  # 设置为抽象类，防止创建数据表
@@ -20,7 +20,7 @@ class UserManager(BaseUserManager):
         if base_user_type == "user":
             user = self.model(id=id, **extra_fields)
         elif base_user_type == "doctor":
-            user = self.model(staff_id=id, **extra_fields)
+            user = self.model(doctor_id=id, **extra_fields)
         elif base_user_type == "admin":
             user = self.model(admin_id=id, **extra_fields)
         else:
@@ -33,12 +33,12 @@ class UserManager(BaseUserManager):
         return user
 
     def create_base_superuser(self, id, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_doctor', True)
         extra_fields.setdefault('is_superuser', True)
 
         # 验证超级用户必须有权限
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError("超级用户必须设置 is_staff=True")
+        if extra_fields.get('is_doctor') is not True:
+            raise ValueError("超级用户必须设置 is_doctor=True")
         if extra_fields.get('is_superuser') is not True:
             raise ValueError("超级用户必须设置 is_superuser=True")
 
@@ -111,7 +111,7 @@ class User(BaseUser):
 
 # 表 2: 医师用户数据元素表
 class Doctor(BaseUser):
-    staff_id = models.CharField(max_length=5, primary_key=True, unique=True)  # 医工号：主键
+    doctor_id = models.CharField(max_length=5, primary_key=True, unique=True)  # 医工号：主键
     password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空，128个字符用于加密后的存储
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
@@ -123,8 +123,8 @@ class Doctor(BaseUser):
     groups = models.ManyToManyField(Group, related_name="doctor_groups")
     user_permissions = models.ManyToManyField(Permission, related_name="doctor_permissions")
 
-    # 使医生的用户名字段指向 staff_id
-    USERNAME_FIELD = 'staff_id'
+    # 使医生的用户名字段指向 doctor_id
+    USERNAME_FIELD = 'doctor_id'
     REQUIRED_FIELDS = ['name', 'gender', 'title']
 
     objects = UserManager()
@@ -136,7 +136,7 @@ class Doctor(BaseUser):
     def get_required_fields(cls, use_password):
         if use_password:
             return {
-                'staff_id': 5,
+                'doctor_id': 5,
                 'password': 128,
                 'name': 15,
                 'gender': 1,
@@ -144,7 +144,7 @@ class Doctor(BaseUser):
             }
         else:
             return {
-                'staff_id': 5,
+                'doctor_id': 5,
                 'name': 15,
                 'gender': 1,
                 'title': 10
@@ -159,7 +159,7 @@ class Doctor(BaseUser):
 
     def get_view_dic(self):
         return {
-            'staff_id': self.staff_id,
+            'doctor_id': self.doctor_id,
             'name': self.name,
             'gender': self.gender,
             'title': self.title,
@@ -237,7 +237,7 @@ class Department(models.Model):
 # 表 6: 排班数据元素表
 class Schedule(models.Model):
     schedule_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 排班号：主键
-    staff_id = models.CharField(max_length=5, null=False, blank=False)  # 医工号：非空
+    doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 医工号：非空
     department_id = models.CharField(max_length=3, null=False, blank=False)  # 科室号：非空
     schedule_time = models.DateTimeField(null=False, blank=False)  # 排班时间：非空
 
@@ -272,7 +272,7 @@ class ExaminationArrangement(models.Model):
     examination_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 体检号：主键
     examination_text = models.TextField(null=False, blank=False)  # 体检项目：非空
     examination_date = models.DateField(null=False, blank=False)  # 体检日期：非空
-    staff_id = models.CharField(max_length=5, null=False, blank=False)  # 负责医工号：非空
+    doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 负责医工号：非空
 
 
 # 表 11: 体检信息数据元素表
@@ -302,7 +302,7 @@ class Diagnosis(models.Model):
     diagnosis_time = models.DateTimeField(null=False, blank=False)  # 诊断时间：非空
     patient_id_number = models.CharField(max_length=18, null=False, blank=False)  # 患者身份证号：非空
     appointment_id = models.CharField(max_length=8, null=False, blank=False)  # 预约号：非空
-    staff_id = models.CharField(max_length=5, null=False, blank=False)  # 医工号：非空
+    doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 医工号：非空
 
 
 # 表 14: 处方数据元素表
@@ -329,7 +329,7 @@ class Evaluation(models.Model):
     evaluation_text = models.TextField(null=False, blank=False)  # 评价内容：非空
     evaluation_time = models.DateTimeField(null=False, blank=False)  # 评价时间：非空
     evaluator_student_id = models.CharField(max_length=8, null=False, blank=False)  # 评价人学工号：非空
-    evaluated_staff_id = models.CharField(max_length=5, null=False, blank=False)  # 被评价人医工号：非空
+    evaluated_doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 被评价人医工号：非空
 
 
 # 表 17: 图片数据元素表

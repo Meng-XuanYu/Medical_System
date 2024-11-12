@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>查看医生信息</title>
+    <title>查看医师信息</title>
     <style>
         table {
             width: 80%;
@@ -31,11 +31,11 @@
 </head>
 <body>
 <button type="button" onclick="goToHomepage()">回到主页</button>
-<h2 style="text-align: center;">医生信息</h2>
+<h2 style="text-align: center;">医师信息</h2>
 <table id="doctor-table">
     <thead>
     <tr>
-        <th>医生ID</th>
+        <th>医师ID</th>
         <th>姓名</th>
         <th>性别</th>
         <th>职称</th>
@@ -48,7 +48,7 @@
 </table>
 
 <script>
-    // 获取医生信息并展示在表格中
+    // 获取医师信息并展示在表格中
     document.addEventListener("DOMContentLoaded", function () {
         fetch('/api/view/doctors/', {
             method: 'GET',
@@ -67,14 +67,14 @@
                     doctors.forEach(doctor => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${doctor.staff_id}</td>
+                            <td>${doctor.doctor_id}</td>
                             <td>${doctor.name}</td>
                             <td>${doctor.gender}</td>
                             <td>${doctor.title}</td>
                             <td>${doctor.image_id}</td>
                             <td>${doctor.introduction}</td>
                             <td>
-                                <button onclick="editDoctor('${doctor.staff_id}')">修改</button>
+                                <button onclick="editDoctor('${doctor.doctor_id}')">修改</button>
                             </td>
                         `;
                         tableBody.appendChild(row);
@@ -86,8 +86,8 @@
             .catch(error => console.error('Error fetching doctors:', error));
     });
 
-    function editDoctor(staffId) {
-        window.location.href = `/edit/doctor/?staff_id=${staffId}`;
+    function editDoctor(doctorId) {
+        window.location.href = `/edit/doctor/?doctor_id=${doctorId}`;
     }
 
     function goToHomepage() {

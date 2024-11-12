@@ -1,14 +1,13 @@
-from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from .models import *
 from django.db import DataError
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.http import require_GET, require_POST
+from django.contrib.auth import logout as auth_logout
 from .auth_backends import *
-from .user_check import *
+from MedicalSystem.view_funcs.base_user_funcs import *
 import json
+
+from .view_funcs.base_user_funcs import fields_check
 
 home_url = "login/"
 
@@ -19,33 +18,33 @@ def homepage(request):
 
 
 @require_GET
-def user_register_page(request):
-    return render(request, "user_register.html")
+def page_register_user(request):
+    return render(request, "register_user.html")
 
 
 @require_GET
-def doctor_register_page(request):
-    return render(request, "doctor_register.html")
+def page_register_doctor(request):
+    return render(request, "register_doctor.html")
 
 
 @require_GET
-def admin_register_page(request):
-    return render(request, "admin_register.html")
+def page_admin_register(request):
+    return render(request, "register_admin.html")
 
 
 @require_GET
-def user_login_page(request):
-    return render(request, "user_login.html")
+def page_login_user(request):
+    return render(request, "login_user.html")
 
 
 @require_GET
-def doctor_login_page(request):
-    return render(request, "doctor_login.html")
+def page_login_doctor(request):
+    return render(request, "login_doctor.html")
 
 
 @require_GET
-def admin_login_page(request):
-    return render(request, "admin_login.html")
+def page_login_admin(request):
+    return render(request, "login_admin.html")
 
 
 @require_GET
@@ -60,7 +59,7 @@ def edit_doctor_page(request):
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_POST
-def user_register(request):
+def register_user(request):
     try:
         data = json.loads(request.body)  # 从请求体解析 JSON 数据
 
@@ -84,7 +83,7 @@ def user_register(request):
             user_type=data['user_type'],
             phone=data['phone']
         )
-        return JsonResponse({'status': 'success', 'message': '注册成功'})
+        return JsonResponse({'status': 'success', 'message': '用户注册成功'})
     except DataError:  # 捕获字段溢出或类型错误
         return JsonResponse({'status': 'error', 'message': '数据超出字段限制或无效'}, status=400)
     except json.JSONDecodeError:
@@ -93,51 +92,7 @@ def user_register(request):
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_POST
-def user_login(request):
-    # 检查当前用户是否已登录
-    if is_logged(request.user):
-        return JsonResponse({'status': 'error', 'message': '当前已登录'}, status=400)
-
-    try:
-        data = json.loads(request.body)  # 从请求体解析 JSON 数据
-
-        # 检查是否提供了学工号和密码
-        if 'id' not in data or not data['id']:
-            return JsonResponse({'status': 'error', 'message': '缺少学工号'}, status=400)
-        if 'password' not in data or not data['password']:
-            return JsonResponse({'status': 'error', 'message': '缺少密码'}, status=400)
-
-        # 使用 Django 的 authenticate 来验证用户凭据
-        user = authenticate(request, username=data['id'], password=data['password'], base_user_type='user')
-        if user is not None:
-            login(request, user)  # 登录并创建会话
-            return JsonResponse({'status': 'success', 'message': '登录成功'})
-        else:
-            return JsonResponse({'status': 'error', 'message': '学工号或密码错误'}, status=400)
-
-    except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
-
-
-@csrf_exempt  # 临时禁用 CSRF 检查
-@require_POST
-def user_logout(request):
-    # 检查用户是否已登录
-    if not is_logged(request.user):
-        return JsonResponse({'status': 'error', 'message': '当前未登录'}, status=400)
-
-    # 检查是否为用户登录
-    if not is_user(request.user):
-        return JsonResponse({'status': 'error', 'message': '当前不是用户登录'}, status=400)
-
-    # 执行退出登录操作
-    logout(request)
-    return JsonResponse({'status': 'success', 'message': '成功退出登录'}, status=200)
-
-
-@csrf_exempt  # 临时禁用 CSRF 检查
-@require_POST
-def doctor_register(request):
+def register_doctor(request):
     # 确保当前用户已登录，并且用户类型是 Admin
     if not is_admin(request.user):
         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
@@ -150,13 +105,13 @@ def doctor_register(request):
             return check_return
 
         # 在创建医师前检查是否已存在
-        if Doctor.objects.filter(staff_id=data['staff_id']).exists():
+        if Doctor.objects.filter(doctor_id=data['doctor_id']).exists():
             return JsonResponse({'status': 'error', 'message': '医师已存在'}, status=400)
 
         # 尝试插入数据
         Doctor.objects.create_base_user(
             base_user_type="doctor",
-            id=data['staff_id'],
+            id=data['doctor_id'],
             password=data['password'],
             name=data['name'],
             gender=data['gender'],
@@ -173,52 +128,7 @@ def doctor_register(request):
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_POST
-def doctor_login(request):
-    # 检查当前用户是否已登录
-    if is_logged(request.user):
-        return JsonResponse({'status': 'error', 'message': '当前已登录'}, status=400)
-
-    try:
-        data = json.loads(request.body)  # 从请求体解析 JSON 数据
-
-        # 检查是否提供了医工号和密码
-        if 'staff_id' not in data or not data['staff_id']:
-            return JsonResponse({'status': 'error', 'message': '缺少医工号'}, status=400)
-        if 'password' not in data or not data['password']:
-            return JsonResponse({'status': 'error', 'message': '缺少密码'}, status=400)
-
-        # 使用 Django 的 authenticate 来验证医师凭据
-        doctor = authenticate(request, username=data['staff_id'], password=data['password'],
-                              base_user_type='doctor')
-        if doctor is not None:
-            login(request, doctor)  # 登录并创建会话
-            return JsonResponse({'status': 'success', 'message': '医师登录成功'})
-        else:
-            return JsonResponse({'status': 'error', 'message': '医工号或密码错误'}, status=400)
-
-    except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
-
-
-@csrf_exempt  # 临时禁用 CSRF 检查
-@require_POST
-def doctor_logout(request):
-    # 检查用户是否已登录
-    if not is_logged(request.user):
-        return JsonResponse({'status': 'error', 'message': '当前未登录'}, status=400)
-
-    # 检查是否为医师登录
-    if not is_doctor(request.user):
-        return JsonResponse({'status': 'error', 'message': '当前不是医师登录'}, status=400)
-
-    # 执行退出登录操作
-    logout(request)
-    return JsonResponse({'status': 'success', 'message': '医师成功退出登录'}, status=200)
-
-
-@csrf_exempt  # 临时禁用 CSRF 检查
-@require_POST
-def admin_register(request):
+def register_admin(request):
     # 确保当前用户已登录，并且用户类型是 Admin
     if not is_admin(request.user):
         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
@@ -250,7 +160,7 @@ def admin_register(request):
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_POST
-def admin_login(request):
+def login(request):
     # 检查当前用户是否已登录
     if is_logged(request.user):
         return JsonResponse({'status': 'error', 'message': '当前已登录'}, status=400)
@@ -258,19 +168,15 @@ def admin_login(request):
     try:
         data = json.loads(request.body)  # 从请求体解析 JSON 数据
 
-        # 检查是否提供了管理员号和密码
-        if 'admin_id' not in data or not data['admin_id']:
-            return JsonResponse({'status': 'error', 'message': '缺少管理员号'}, status=400)
-        if 'password' not in data or not data['password']:
-            return JsonResponse({'status': 'error', 'message': '缺少密码'}, status=400)
-
-        # 使用 Django 的 authenticate 来验证管理员凭据
-        admin = authenticate(request, username=data['admin_id'], password=data['password'], base_user_type='admin')
-        if admin is not None:
-            login(request, admin)  # 登录并创建会话
-            return JsonResponse({'status': 'success', 'message': '管理员登录成功'})
-        else:
-            return JsonResponse({'status': 'error', 'message': '管理员号或密码错误'}, status=400)
+        match data['user_type']:
+            case 'S' | 'T':
+                return login_user(request, data)
+            case 'D':
+                return login_doctor(request, data)
+            case 'A':
+                return login_admin(request, data)
+            case _:
+                return JsonResponse({'status': 'error', 'message': '无效的 user_type 字段'}, status=400)
 
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
@@ -278,29 +184,29 @@ def admin_login(request):
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_POST
-def admin_logout(request):
+def logout(request):
     # 检查用户是否已登录
     if not is_logged(request.user):
         return JsonResponse({'status': 'error', 'message': '当前未登录'}, status=400)
 
-    # 检查是否为管理员登录
-    if not is_admin(request.user):
-        return JsonResponse({'status': 'error', 'message': '当前不是管理员登录'}, status=400)
-
     # 执行退出登录操作
-    logout(request)
-    return JsonResponse({'status': 'success', 'message': '管理员退出登录成功'}, status=200)
+    auth_logout(request)
+    return JsonResponse({'status': 'success', 'message': '成功退出登录'}, status=200)
 
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_GET
 def view_doctor(request):
-    staff_id = request.GET.get('staff_id')
-    if not staff_id:
-        return JsonResponse({'status': 'error', 'message': '缺少员工号'}, status=400)
+    # 确保当前用户已登录，并且用户类型是 Admin
+    if not is_admin(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    doctor_id = request.GET.get('doctor_id')
+    if not doctor_id:
+        return JsonResponse({'status': 'error', 'message': '缺少医工号'}, status=400)
 
     try:
-        doctor = Doctor.objects.get(staff_id=staff_id)
+        doctor = Doctor.objects.get(doctor_id=doctor_id)
         data = doctor.get_view_dic()
         data['status'] = 'success'
         return JsonResponse(data)
@@ -334,8 +240,8 @@ def edit_doctor(request):
         if check_return is not None:
             return check_return
 
-        staff_id = data.get('staff_id')
-        doctor = Doctor.objects.get(staff_id=staff_id)
+        doctor_id = data.get('doctor_id')
+        doctor = Doctor.objects.get(doctor_id=doctor_id)
 
         # 更新医生信息
         doctor.name = data.get('name', doctor.name)
@@ -350,29 +256,6 @@ def edit_doctor(request):
         return JsonResponse({'status': 'error', 'message': '医生不存在'}, status=404)
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
-
-
-def fields_check(model_class, data, use_password):
-    # 获取必填字段及其长度限制
-    required_fields = model_class.get_required_fields(use_password)
-
-    # 检查所有必填字段是否存在且不为空
-    for field, max_length in required_fields.items():
-        if field not in data or not data[field]:
-            return JsonResponse({'status': 'error', 'message': f'缺少必填字段：{field}'}, status=400)
-        if max_length and len(data[field]) > max_length:
-            return JsonResponse({'status': 'error', 'message': f'{field}长度不能超过{max_length}个字符'},
-                                status=400)
-
-    # 检查可选字段
-    optional_fields = model_class.get_optional_fields()
-    for field, max_length in optional_fields.items():
-        if field in data and data[field]:  # 字段存在且不为空
-            if max_length and len(data[field]) > max_length:
-                return JsonResponse({'status': 'error', 'message': f'{field}长度不能超过{max_length}个字符'},
-                                    status=400)
-
-    return None
 
 
 def is_admin(user):

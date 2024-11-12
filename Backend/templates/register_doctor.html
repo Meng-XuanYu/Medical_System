@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Register</title>
+    <title>Doctor Register</title>
 </head>
 <body>
-<h1>管理员注册</h1>
-<form id="adminRegisterForm">
-    <label for="admin_id">管理员号:</label>
-    <input type="text" id="admin_id" name="admin_id" required>
+<h1>医师注册</h1>
+<form id="doctorRegisterForm">
+    <label for="doctor_id">医工号:</label>
+    <input type="text" id="doctor_id" name="doctor_id" required>
     <br><br>
     <label for="password">密码:</label>
     <input type="password" id="password" name="password" required>
@@ -16,7 +16,19 @@
     <label for="name">姓名:</label>
     <input type="text" id="name" name="name" required>
     <br><br>
-    <button type="button" onclick="adminRegister()">注册</button>
+    <label for="gender">性别:</label>
+    <input type="text" id="gender" name="gender" required>
+    <br><br>
+    <label for="title">职称:</label>
+    <input type="text" id="title" name="title" required>
+    <br><br>
+    <label for="image_id">图片号:</label>
+    <input type="text" id="image_id" name="image_id">
+    <br><br>
+    <label for="introduction">介绍:</label>
+    <textarea id="introduction" name="introduction"></textarea>
+    <br><br>
+    <button type="button" onclick="doctorRegister()">注册</button>
     <br><br>
     <button type="button" onclick="goToHomepage()">回到主页</button>
 </form>
@@ -24,14 +36,18 @@
 <p id="message"></p>
 
 <script>
-    async function adminRegister() {
+    async function doctorRegister() {
         const formData = {
-            admin_id: document.getElementById('admin_id').value,
+            doctor_id: document.getElementById('doctor_id').value,
             password: document.getElementById('password').value,
-            name: document.getElementById('name').value
+            name: document.getElementById('name').value,
+            gender: document.getElementById('gender').value,
+            title: document.getElementById('title').value,
+            image_id: document.getElementById('image_id').value,
+            introduction: document.getElementById('introduction').value
         };
 
-        const response = await fetch('/api/admin/register/', {
+        const response = await fetch('/register/doctor/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

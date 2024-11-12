@@ -26,13 +26,19 @@
         const admin_id = document.getElementById('admin_id').value;
         const password = document.getElementById('password').value;
 
-        const response = await fetch('/api/admin/login/', {
+        const requestBody = {
+            admin_id: admin_id,
+            password: password,
+            user_type: "A"
+        };
+
+        const response = await fetch('/login/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
-            body: JSON.stringify({admin_id, password}),
+            body: JSON.stringify(requestBody),
             credentials: 'same-origin'
         });
 
@@ -41,7 +47,7 @@
     }
 
     async function logout() {
-        const response = await fetch('/api/admin/logout/', {
+        const response = await fetch('/logout/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken')
