@@ -50,7 +50,7 @@
 <script>
     // 获取医师信息并展示在表格中
     document.addEventListener("DOMContentLoaded", function () {
-        fetch('/api/view/doctors/', {
+        fetch('/view/doctors/', {
             method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -87,7 +87,7 @@
     });
 
     function editDoctor(doctorId) {
-        window.location.href = `/edit/doctor/?doctor_id=${doctorId}`;
+        window.location.href = `/page/edit/doctor/?doctor_id=${doctorId}`;
     }
 
     function goToHomepage() {

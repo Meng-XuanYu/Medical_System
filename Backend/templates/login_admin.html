@@ -7,8 +7,8 @@
 <body>
 <h1>管理员登录</h1>
 <form id="adminLoginForm">
-    <label for="admin_id">管理员号:</label>
-    <input type="text" id="admin_id" name="admin_id" required>
+    <label for="id">管理员号:</label>
+    <input type="text" id="id" name="id" required>
     <br><br>
     <label for="password">密码:</label>
     <input type="password" id="password" name="password" required>
@@ -23,11 +23,11 @@
 
 <script>
     async function adminLogin() {
-        const admin_id = document.getElementById('admin_id').value;
+        const id = document.getElementById('id').value;
         const password = document.getElementById('password').value;
 
         const requestBody = {
-            admin_id: admin_id,
+            id: id,
             password: password,
             user_type: "A"
         };

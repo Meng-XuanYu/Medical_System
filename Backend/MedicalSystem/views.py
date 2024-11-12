@@ -211,7 +211,7 @@ def view_doctor(request):
         data['status'] = 'success'
         return JsonResponse(data)
     except Doctor.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': '医生不存在'}, status=404)
+        return JsonResponse({'status': 'error', 'message': '医师不存在'}, status=404)
 
 
 @csrf_exempt  # 临时禁用 CSRF 检查
@@ -243,7 +243,7 @@ def edit_doctor(request):
         doctor_id = data.get('doctor_id')
         doctor = Doctor.objects.get(doctor_id=doctor_id)
 
-        # 更新医生信息
+        # 更新医师信息
         doctor.name = data.get('name', doctor.name)
         doctor.gender = data.get('gender', doctor.gender)
         doctor.title = data.get('title', doctor.title)
@@ -251,9 +251,9 @@ def edit_doctor(request):
         doctor.introduction = data.get('introduction', doctor.introduction)
         doctor.save()
 
-        return JsonResponse({'status': 'success', 'message': '医生信息已更新'})
+        return JsonResponse({'status': 'success', 'message': '医师信息已更新'})
     except Doctor.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': '医生不存在'}, status=404)
+        return JsonResponse({'status': 'error', 'message': '医师不存在'}, status=404)
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
 
@@ -291,3 +291,5 @@ def get_user_info(request):
             "name": user.name
         }
         return JsonResponse(user_info)
+    else:
+        raise ValueError("不存在的基础用户类型")

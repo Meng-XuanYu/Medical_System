@@ -27,7 +27,7 @@ def fields_check(model_class, data, use_password):
         if field not in data or not data[field]:
             return JsonResponse({'status': 'error', 'message': f'缺少必填字段：{field}'}, status=400)
         if max_length and len(data[field]) > max_length:
-            return JsonResponse({'status': 'error', 'message': f'{field}长度不能超过{max_length}个字符'},
+            return JsonResponse({'status': 'error', 'message': f'{field}字段长度不能超过{max_length}个字符'},
                                 status=400)
 
     # 检查可选字段
@@ -35,7 +35,7 @@ def fields_check(model_class, data, use_password):
     for field, max_length in optional_fields.items():
         if field in data and data[field]:  # 字段存在且不为空
             if max_length and len(data[field]) > max_length:
-                return JsonResponse({'status': 'error', 'message': f'{field}长度不能超过{max_length}个字符'},
+                return JsonResponse({'status': 'error', 'message': f'{field}字段长度不能超过{max_length}个字符'},
                                     status=400)
 
     return None
@@ -59,13 +59,13 @@ def login_user(request, data):
 
 def login_doctor(request, data):
     # 检查是否提供了医工号和密码
-    if 'doctor_id' not in data or not data['doctor_id']:
+    if 'id' not in data or not data['id']:
         return JsonResponse({'status': 'error', 'message': '缺少医工号'}, status=400)
     if 'password' not in data or not data['password']:
         return JsonResponse({'status': 'error', 'message': '缺少密码'}, status=400)
 
     # 使用 Django 的 authenticate 来验证医师凭据
-    doctor = authenticate(request, username=data['doctor_id'], password=data['password'],
+    doctor = authenticate(request, username=data['id'], password=data['password'],
                           base_user_type='doctor')
     if doctor is not None:
         login(request, doctor)  # 登录并创建会话
@@ -76,13 +76,13 @@ def login_doctor(request, data):
 
 def login_admin(request, data):
     # 检查是否提供了管理员号和密码
-    if 'admin_id' not in data or not data['admin_id']:
+    if 'id' not in data or not data['id']:
         return JsonResponse({'status': 'error', 'message': '缺少管理员号'}, status=400)
     if 'password' not in data or not data['password']:
         return JsonResponse({'status': 'error', 'message': '缺少密码'}, status=400)
 
     # 使用 Django 的 authenticate 来验证管理员凭据
-    admin = authenticate(request, username=data['admin_id'], password=data['password'], base_user_type='admin')
+    admin = authenticate(request, username=data['id'], password=data['password'], base_user_type='admin')
     if admin is not None:
         login(request, admin)  # 登录并创建会话
         return JsonResponse({'status': 'success', 'message': '管理员登录成功'})

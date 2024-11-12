@@ -17,15 +17,15 @@ class UserManager(BaseUserManager):
         if not id:
             raise ValueError("必须提供用户ID")
 
-        if base_user_type == "user":
-            user = self.model(id=id, **extra_fields)
-        elif base_user_type == "doctor":
-            user = self.model(doctor_id=id, **extra_fields)
-        elif base_user_type == "admin":
-            user = self.model(admin_id=id, **extra_fields)
-        else:
-            print(base_user_type + "is not a valid base user type!")
-            raise ValueError
+        match base_user_type:
+            case "user":
+                user = self.model(id=id, **extra_fields)
+            case "doctor":
+                user = self.model(doctor_id=id, **extra_fields)
+            case "admin":
+                user = self.model(admin_id=id, **extra_fields)
+            case _:
+                raise ValueError("不存在的基础用户类型：" + base_user_type)
 
         # 设置用户密码
         user.set_password(password)  # 对密码进行哈希处理

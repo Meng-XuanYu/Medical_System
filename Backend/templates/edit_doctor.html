@@ -28,7 +28,7 @@
 
     document.addEventListener("DOMContentLoaded", async function() {
             // 获取医师信息并填充表单
-            const response = await fetch(`/api/view/doctor/?doctor_id=${doctorId}`, {
+            const response = await fetch(`/view/doctor/?doctor_id=${doctorId}`, {
                 method: 'GET',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin'
@@ -52,7 +52,7 @@
         const image_id = document.getElementById('image_id').value;
         const introduction = document.getElementById('introduction').value;
 
-        const response = await fetch('/api/edit/doctor/', {
+        const response = await fetch('/edit/doctor/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

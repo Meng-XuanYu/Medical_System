@@ -7,8 +7,8 @@
 <body>
 <h1>医师登录</h1>
 <form id="doctorLoginForm">
-    <label for="doctor_id">医工号:</label>
-    <input type="text" id="doctor_id" name="doctor_id" required>
+    <label for="id">医工号:</label>
+    <input type="text" id="id" name="id" required>
     <br><br>
     <label for="password">密码:</label>
     <input type="password" id="password" name="password" required>
@@ -23,11 +23,11 @@
 
 <script>
     async function doctorLogin() {
-        const doctor_id = document.getElementById('doctor_id').value;
+        const id = document.getElementById('id').value;
         const password = document.getElementById('password').value;
 
         const requestBody = {
-            doctor_id: doctor_id,
+            id: id,
             password: password,
             user_type: "D"
         };

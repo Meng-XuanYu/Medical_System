@@ -28,7 +28,7 @@ class DoctorBackend(BaseBackend):
             return None  # 不是医生登录，不继续处理
 
         try:
-            doctor = Doctor.objects.get(staff_id=username)
+            doctor = Doctor.objects.get(doctor_id=username)
             if check_password(password, doctor.password):
                 return doctor
         except Doctor.DoesNotExist:
