@@ -56,6 +56,14 @@ def view_doctors_page(request):
 def edit_doctor_page(request):
     return render(request, "edit_doctor.html")
 
+@require_GET
+def view_appointments_page(request):
+    return render(request, "view_appointments.html")
+
+@require_GET
+def edit_appointment_page(request):
+    return render(request, "edit_appointment.html")
+
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_POST
@@ -68,13 +76,13 @@ def register_user(request):
             return check_return
 
         # 在创建用户前检查是否已存在
-        if User.objects.filter(id=data['id']).exists():
+        if User.objects.filter(user_id=data['user_id']).exists():
             return JsonResponse({'status': 'error', 'message': '用户已存在'}, status=400)
 
         # 尝试插入数据
         User.objects.create_base_user(
             base_user_type="user",
-            id=data['id'],
+            id=data['user_id'],
             password=data['password'],
             name=data['name'],
             gender=data['gender'],
@@ -145,7 +153,7 @@ def register_admin(request):
             return JsonResponse({'status': 'error', 'message': '管理员已存在'}, status=400)
 
         # 尝试插入数据
-        Admin.objects.create_base_user(
+        Admin.objects.create_superuser(
             base_user_type="admin",
             id=data['admin_id'],
             name=data['name'],
@@ -236,7 +244,7 @@ def edit_doctor(request):
     try:
         data = json.loads(request.body)  # 从请求体解析 JSON 数据
 
-        check_return = fields_check(Doctor, data, False)
+        check_return = fields_check(Doctor, data)
         if check_return is not None:
             return check_return
 
@@ -258,8 +266,66 @@ def edit_doctor(request):
         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
 
 
-def is_admin(user):
-    return user.is_authenticated and hasattr(user, 'admin_id')
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def view_appointment(request):
+    # 确保当前用户已登录，并且用户类型是 Admin
+    if not is_admin(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    appointment_id = request.GET.get('appointment_id')
+    if not appointment_id:
+        return JsonResponse({'status': 'error', 'message': '缺少预约号'}, status=400)
+
+    try:
+        appointment = Appointment.objects.get(appointment_id=appointment_id)
+        data = appointment.get_view_dic()
+        data['status'] = 'success'
+        return JsonResponse(data)
+    except Appointment.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '预约不存在'}, status=404)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def view_appointments(request):
+    # 确保当前用户已登录，并且用户类型是 Admin
+    if not is_admin(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    appointments = Appointment.objects.all()
+    appointments_list = [appointment.get_view_dic() for appointment in appointments]
+    return JsonResponse({'status': 'success', 'appointments': appointments_list})
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def edit_appointment(request):
+    # 确保当前用户已登录，并且用户类型是 Admin
+    if not is_admin(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+
+        check_return = fields_check(Appointment, data)
+        if check_return is not None:
+            return check_return
+
+        appointment_id = data.get('appointment_id')
+        appointment = Appointment.objects.get(appointment_id=appointment_id)
+
+        # 更新预约信息
+        appointment.relationship = data.get('relationship', appointment.relationship)
+        appointment.schedule_id = data.get('schedule_id', appointment.schedule_id)
+        appointment.user_id = data.get('student_id', appointment.user_id)
+        appointment.save()
+
+        return JsonResponse({'status': 'success', 'message': '预约信息已更新'})
+    except Appointment.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '预约不存在'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
 
 
 # 测试用函数
@@ -270,10 +336,10 @@ def get_user_info(request):
         return JsonResponse({'status': 'error', 'message': '当前未登录'}, status=400)
 
     user = request.user
-    if getattr(user, 'id', None) is not None:
+    if getattr(user, 'user_id', None) is not None:
         user_info = {
             "base_user_type": "user",
-            "id": user.id,
+            "id": user.user_id,
             "name": user.name
         }
         return JsonResponse(user_info)

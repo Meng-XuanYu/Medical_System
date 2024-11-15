@@ -9,7 +9,7 @@ class UserBackend(BaseBackend):
             return None  # 不是用户登录，不继续处理
 
         try:
-            user = User.objects.get(id=username)
+            user = User.objects.get(user_id=username)
             if check_password(password, user.password):
                 return user
         except User.DoesNotExist:

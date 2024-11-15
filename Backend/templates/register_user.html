@@ -7,8 +7,8 @@
 <body>
 <h1>用户注册</h1>
 <form id="userRegisterForm">
-    <label for="id">学工号:</label>
-    <input type="text" id="id" name="id" required>
+    <label for="user_id">学工号:</label>
+    <input type="text" id="user_id" name="user_id" required>
     <br><br>
     <label for="password">密码:</label>
     <input type="password" id="password" name="password" required>
@@ -41,7 +41,7 @@
 <script>
     async function userRegister() {
         const formData = {
-            id: document.getElementById('id').value,
+            user_id: document.getElementById('user_id').value,
             password: document.getElementById('password').value,
             name: document.getElementById('name').value,
             gender: document.getElementById('gender').value,

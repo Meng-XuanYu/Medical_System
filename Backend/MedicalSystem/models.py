@@ -6,7 +6,7 @@ from django.db import models
 class BaseUser(AbstractBaseUser, PermissionsMixin):
     # 公共字段
     is_active = models.BooleanField(default=True)
-    is_doctor = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
 
     class Meta:
         abstract = True  # 设置为抽象类，防止创建数据表
@@ -19,7 +19,7 @@ class UserManager(BaseUserManager):
 
         match base_user_type:
             case "user":
-                user = self.model(id=id, **extra_fields)
+                user = self.model(user_id=id, **extra_fields)
             case "doctor":
                 user = self.model(doctor_id=id, **extra_fields)
             case "admin":
@@ -32,22 +32,28 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_base_superuser(self, id, password=None, **extra_fields):
-        extra_fields.setdefault('is_doctor', True)
+    def create_superuser(self, base_user_type, id, password=None, **extra_fields):
+        if not id:
+            raise ValueError("必须提供用户ID")
+        elif base_user_type != "admin":
+            raise ValueError("超级用户必须为管理员")
+
+        # 确保超级用户具备必要的权限
+        extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
         # 验证超级用户必须有权限
-        if extra_fields.get('is_doctor') is not True:
-            raise ValueError("超级用户必须设置 is_doctor=True")
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError("超级用户必须设置 is_admin=True")
         if extra_fields.get('is_superuser') is not True:
             raise ValueError("超级用户必须设置 is_superuser=True")
 
-        return self.create_base_user(id, password, **extra_fields)
+        return self.create_base_user(base_user_type, id, password, **extra_fields, )
 
 
 # 表 1: 用户数据元素表
 class User(BaseUser):
-    id = models.CharField(max_length=8, primary_key=True, unique=True)  # 学工号：主键
+    user_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 学工号：主键
     password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空，128个字符用于加密后的存储
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
@@ -61,19 +67,16 @@ class User(BaseUser):
     user_permissions = models.ManyToManyField(Permission, related_name="user_permissions")
 
     # 指定用户ID作为登录字段
-    USERNAME_FIELD = 'id'
+    USERNAME_FIELD = 'user_id'
     REQUIRED_FIELDS = ['name', 'gender', 'birth', 'id_number', 'user_type', 'phone']
 
     objects = UserManager()
 
-    def __str__(self):
-        return self.id
-
     @classmethod
-    def get_required_fields(cls, use_password):
+    def get_required_fields(cls, use_password=False):
         if use_password:
             return {
-                'id': 8,
+                'user_id': 8,
                 'password': 128,
                 'name': 15,
                 'gender': 1,
@@ -84,7 +87,7 @@ class User(BaseUser):
             }
         else:
             return {
-                'id': 8,
+                'user_id': 8,
                 'name': 15,
                 'gender': 1,
                 'birth': None,  # 日期字段无需长度限制
@@ -97,9 +100,13 @@ class User(BaseUser):
     def get_optional_fields(cls):
         return {}
 
-    def to_dict(self):
+    @classmethod
+    def get_chinese_name(cls):
+        return '用户'
+
+    def to_view_fields(self):
         return {
-            'id': self.id,
+            'user_id': self.user_id,
             'name': self.name,
             'gender': self.gender,
             'birth': self.birth,
@@ -107,6 +114,15 @@ class User(BaseUser):
             'user_type': self.user_type,
             'phone': self.phone
         }
+
+    def update_view_fields(self, data):
+        self.name = data.get('name', self.name)
+        self.gender = data.get('gender', self.gender)
+        self.birth = data.get('birth', self.birth)
+        self.id_number = data.get('id_number', self.id_number)
+        self.user_type = data.get('user_type', self.user_type)
+        self.phone = data.get('phone', self.phone)
+        self.save()
 
 
 # 表 2: 医师用户数据元素表
@@ -129,11 +145,8 @@ class Doctor(BaseUser):
 
     objects = UserManager()
 
-    def __str__(self):
-        return self.id
-
     @classmethod
-    def get_required_fields(cls, use_password):
+    def get_required_fields(cls, use_password=False):
         if use_password:
             return {
                 'doctor_id': 5,
@@ -153,9 +166,13 @@ class Doctor(BaseUser):
     @classmethod
     def get_optional_fields(cls):
         return {
-            'image_id': 10,  # 图片号为可选字段
-            'introduction': None  # 介绍为 TextField，无固定长度
+            'image_id': 10,
+            'introduction': None  # text字段无需长度限制
         }
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '医师'
 
     def get_view_dic(self):
         return {
@@ -166,6 +183,14 @@ class Doctor(BaseUser):
             'image_id': self.image_id,
             'introduction': self.introduction
         }
+
+    def update_view_fields(self, data):
+        self.name = data.get('name', self.name)
+        self.gender = data.get('gender', self.gender)
+        self.title = data.get('title', self.title)
+        self.image_id = data.get('image_id', self.image_id)
+        self.introduction = data.get('introduction', self.introduction)
+        self.save()
 
 
 # 表 3: 管理员数据元素表
@@ -184,11 +209,8 @@ class Admin(BaseUser):
 
     objects = UserManager()
 
-    def __str__(self):
-        return self.id
-
     @classmethod
-    def get_required_fields(cls, use_password):
+    def get_required_fields(cls, use_password=False):
         if use_password:
             return {
                 'admin_id': 3,
@@ -205,17 +227,25 @@ class Admin(BaseUser):
     def get_optional_fields(cls):
         return {}
 
-    def to_dict(self):
+    @classmethod
+    def get_chinese_name(cls):
+        return '管理员'
+
+    def to_view_dict(self):
         return {
             'admin_id': self.admin_id,
             'name': self.name
         }
 
+    def update_view_fields(self, data):
+        self.name = data.get('name', self.name)
+        self.save()
+
 
 # 表 4: 家属数据元素表
 class FamilyMember(models.Model):
     family_id = models.CharField(max_length=2)  # 家属号：主键
-    teacher_id = models.CharField(max_length=8)  # 学工号：主键
+    user_id = models.CharField(max_length=8)  # 学工号：主键
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 关系：非空
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
@@ -224,14 +254,78 @@ class FamilyMember(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['family_id', 'teacher_id'], name='unique_family_teacher')
+            models.UniqueConstraint(fields=['family_id', 'user_id'], name='unique_family_teacher')
         ]
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'family_id': 2,
+            'user_id': 8,
+            'relationship': 10,
+            'name': 15,
+            'gender': 1,
+            'birth': None,  # 日期字段无需长度限制
+            'id_number': 18
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '家属'
+
+    def get_view_dic(self):
+        return {
+            'family_id': self.family_id,
+            'user_id': self.user_id,
+            'relationship': self.relationship,
+            'name': self.name,
+            'gender': self.gender,
+            'birth': self.birth,
+            'id_number': self.id_number
+        }
+
+    def update_view_fields(self, data):
+        self.relationship = data.get('relationship', self.relationship)
+        self.name = data.get('name', self.name)
+        self.gender = data.get('gender', self.gender)
+        self.birth = data.get('birth', self.birth)
+        self.id_number = data.get('id_number', self.id_number)
+        self.save()
 
 
 # 表 5: 科室数据元素表
 class Department(models.Model):
     department_id = models.CharField(max_length=3, primary_key=True, unique=True)  # 科室号：主键
     department_name = models.CharField(max_length=10, null=False, blank=False)  # 科室名称：非空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'department_id': 3,
+            'department_name': 10
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '科室'
+
+    def get_view_dic(self):
+        return {
+            'department_id': self.department_id,
+            'department_name': self.department_name
+        }
+
+    def update_view_fields(self, data):
+        self.department_name = data.get('department_name', self.department_name)
+        self.save()
 
 
 # 表 6: 排班数据元素表
@@ -241,11 +335,67 @@ class Schedule(models.Model):
     department_id = models.CharField(max_length=3, null=False, blank=False)  # 科室号：非空
     schedule_time = models.DateTimeField(null=False, blank=False)  # 排班时间：非空
 
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'schedule_id': 8,
+            'doctor_id': 5,
+            'department_id': 3,
+            'schedule_time': None,  # 时间字段无需长度限制
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '排班'
+
+    def get_view_dic(self):
+        return {
+            'schedule_id': self.schedule_id,
+            'doctor_id': self.doctor_id,
+            'department_id': self.department_id,
+            'schedule_time': self.schedule_time
+        }
+
+    def update_view_fields(self, data):
+        self.doctor_id = data.get('doctor_id', self.doctor_id)
+        self.department_id = data.get('department_id', self.department_id)
+        self.schedule_time = data.get('schedule_time', self.schedule_time)
+        self.save()
+
 
 # 表 7: 药房数据元素表
 class Pharmacy(models.Model):
     pharmacy_id = models.CharField(max_length=2, primary_key=True, unique=True)  # 药房号：主键
     pharmacy_name = models.CharField(max_length=10, null=False, blank=False)  # 药房名称：非空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'pharmacy_id': 2,
+            'pharmacy_name': 10
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '药房'
+
+    def get_view_dic(self):
+        return {
+            'pharmacy_id': self.pharmacy_id,
+            'pharmacy_name': self.pharmacy_name
+        }
+
+    def update_view_fields(self, data):
+        self.pharmacy_name = data.get('pharmacy_name', self.pharmacy_name)
+        self.save()
 
 
 # 表 8: 药品数据元素表
@@ -253,6 +403,34 @@ class Drug(models.Model):
     drug_id = models.CharField(max_length=9, primary_key=True, unique=True)  # 药品号：主键
     drug_name = models.CharField(max_length=20, null=False, blank=False)  # 药品名称：非空
     price = models.FloatField(null=False, blank=False)  # 药品价格：非空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'drug_id': 9,
+            'drug_name': 20,
+            'price': None,  # 浮点数字段无需长度限制
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '药品'
+
+    def get_view_dic(self):
+        return {
+            'drug_id': self.drug_id,
+            'drug_name': self.drug_name,
+            'price': self.price
+        }
+
+    def update_view_fields(self, data):
+        self.drug_name = data.get('drug_name', self.drug_name)
+        self.price = data.get('price', self.price)
+        self.save()
 
 
 # 表 9: 药品库存数据元素表
@@ -266,13 +444,72 @@ class DrugInventory(models.Model):
             models.UniqueConstraint(fields=['drug_id', 'pharmacy_id'], name='unique_drug_pharmacy')
         ]
 
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'drug_id': 9,
+            'drug_amount': None,  # 整数字段无需长度限制
+            'pharmacy_id': 2
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '药品库存'
+
+    def get_view_dic(self):
+        return {
+            'drug_id': self.drug_id,
+            'drug_amount': self.drug_amount,
+            'pharmacy_id': self.pharmacy_id
+        }
+
+    def update_view_fields(self, data):
+        self.drug_amount = data.get('drug_amount', self.drug_amount)
+        self.pharmacy_id = data.get('pharmacy_id', self.pharmacy_id)
+        self.save()
+
 
 # 表 10: 体检安排元素表
 class ExaminationArrangement(models.Model):
     examination_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 体检号：主键
-    examination_text = models.TextField(null=False, blank=False)  # 体检项目：非空
+    examination = models.TextField(null=False, blank=False)  # 体检项目：非空
     examination_date = models.DateField(null=False, blank=False)  # 体检日期：非空
     doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 负责医工号：非空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'examination_id': 8,
+            'examination': None,  # text字段无需长度限制
+            'examination_date': None,  # 日期字段无需长度限制
+            'doctor_id': 5
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '体检安排'
+
+    def get_view_dic(self):
+        return {
+            'examination_id': self.examination_id,
+            'examination': self.examination,
+            'examination_date': self.examination_date,
+            'doctor_id': self.doctor_id
+        }
+
+    def update_view_fields(self, data):
+        self.examination = data.get('examination', self.examination)
+        self.examination_date = data.get('examination_date', self.examination_date)
+        self.doctor_id = data.get('doctor_id', self.doctor_id)
+        self.save()
 
 
 # 表 11: 体检信息数据元素表
@@ -280,7 +517,39 @@ class ExaminationInfo(models.Model):
     exam_appointment_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 体检预约号：主键
     examination_id = models.CharField(max_length=8, null=False, blank=False)  # 体检号：非空
     examination_result = models.TextField(null=True, blank=True)  # 体检结果：可空
-    student_id = models.CharField(max_length=8, null=False, blank=False)  # 学工号：非空
+    user_id = models.CharField(max_length=8, null=False, blank=False)  # 学工号：非空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'exam_appointment_id': 8,
+            'examination_id': 8,
+            'user_id': 8
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {
+            'examination_result': None  # text字段无需长度限制
+        }
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '体检信息'
+
+    def get_view_dic(self):
+        return {
+            'exam_appointment_id': self.exam_appointment_id,
+            'examination_id': self.examination_id,
+            'examination_result': self.examination_result,
+            'user_id': self.user_id
+        }
+
+    def update_view_fields(self, data):
+        self.examination_id = data.get('examination_id', self.examination_id)
+        self.examination_result = data.get('examination_result', self.examination_result)
+        self.user_id = data.get('user_id', self.user_id)
+        self.save()
 
 
 # 表 12: 预约数据元素表
@@ -288,7 +557,38 @@ class Appointment(models.Model):
     appointment_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 预约号：主键
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 患者与预约人关系：非空
     schedule_id = models.CharField(max_length=8, null=False, blank=False)  # 排班号：非空
-    student_id = models.CharField(max_length=8, null=False, blank=False)  # 学工号：非空
+    user_id = models.CharField(max_length=8, null=False, blank=False)  # 学工号：非空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'appointment_id': 8,
+            'relationship': 10,
+            'schedule_id': 8,
+            'user_id': 8
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '预约'
+
+    def get_view_dic(self):
+        return {
+            'appointment_id': self.appointment_id,
+            'relationship': self.relationship,
+            'schedule_id': self.schedule_id,
+            'user_id': self.user_id
+        }
+
+    def update_view_fields(self, data):
+        self.relationship = data.get('relationship', self.relationship)
+        self.schedule_id = data.get('schedule_id', self.schedule_id)
+        self.user_id = data.get('user_id', self.user_id)
+        self.save()
 
 
 # 表 13: 诊断数据元素表
@@ -296,13 +596,62 @@ class Diagnosis(models.Model):
     diagnosis_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 诊断号：主键
     examination = models.TextField(null=False, blank=False)  # 检查项目：非空
     examination_result = models.TextField(null=False, blank=False)  # 检查结果：非空
-    reference_range = models.TextField(null=False, blank=False)  # 参考范围：非空
+    reference = models.TextField(null=False, blank=False)  # 参考范围：非空
     clinical_diagnosis = models.TextField(null=False, blank=False)  # 临床诊断：非空
     prescription_id = models.CharField(max_length=8, null=False, blank=False)  # 处方号：非空
     diagnosis_time = models.DateTimeField(null=False, blank=False)  # 诊断时间：非空
-    patient_id_number = models.CharField(max_length=18, null=False, blank=False)  # 患者身份证号：非空
+    id_number = models.CharField(max_length=18, null=False, blank=False)  # 患者身份证号：非空
     appointment_id = models.CharField(max_length=8, null=False, blank=False)  # 预约号：非空
     doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 医工号：非空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'diagnosis_id': 8,
+            'examination': None,  # text字段无需长度限制
+            'examination_result': None,  # text字段无需长度限制
+            'reference': None,  # text字段无需长度限制
+            'clinical_diagnosis': None,  # text字段无需长度限制
+            'prescription_id': 8,
+            'diagnosis_time': None,  # 时间字段无需长度限制
+            'id_number': 18,
+            'appointment_id': 8,
+            'doctor_id': 5
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '诊断'
+
+    def get_view_dic(self):
+        return {
+            'diagnosis_id': self.diagnosis_id,
+            'examination': self.examination,
+            'examination_result': self.examination_result,
+            'reference': self.reference,
+            'clinical_diagnosis': self.clinical_diagnosis,
+            'prescription_id': self.prescription_id,
+            'diagnosis_time': self.diagnosis_time,
+            'id_number': self.id_number,
+            'appointment_id': self.appointment_id,
+            'doctor_id': self.doctor_id
+        }
+
+    def update_view_fields(self, data):
+        self.examination = data.get('examination', self.examination)
+        self.examination_result = data.get('examination_result', self.examination_result)
+        self.reference = data.get('reference', self.reference)
+        self.clinical_diagnosis = data.get('clinical_diagnosis', self.clinical_diagnosis)
+        self.prescription_id = data.get('prescription_id', self.prescription_id)
+        self.diagnosis_time = data.get('diagnosis_time', self.diagnosis_time)
+        self.id_number = data.get('id_number', self.id_number)
+        self.appointment_id = data.get('appointment_id', self.appointment_id)
+        self.doctor_id = data.get('doctor_id', self.doctor_id)
+        self.save()
 
 
 # 表 14: 处方数据元素表
@@ -314,22 +663,124 @@ class Prescription(models.Model):
     usage = models.TextField(null=False, blank=False)  # 用法用量：非空
     precautions = models.TextField(null=False, blank=False)  # 注意事项：非空
 
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'prescription_id': 8,
+            'diagnosis_id': 8,
+            'drug_id': 9,
+            'drug_amount': None,  # 整数字段无需长度限制
+            'usage': None,  # text字段无需长度限制
+            'precautions': None  # text字段无需长度限制
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '处方'
+
+    def get_view_dic(self):
+        return {
+            'prescription_id': self.prescription_id,
+            'diagnosis_id': self.diagnosis_id,
+            'drug_id': self.drug_id,
+            'drug_amount': self.drug_amount,
+            'usage': self.usage,
+            'precautions': self.precautions
+        }
+
+    def update_view_fields(self, data):
+        self.diagnosis_id = data.get('diagnosis_id', self.diagnosis_id)
+        self.drug_id = data.get('drug_id', self.drug_id)
+        self.drug_amount = data.get('drug_amount', self.drug_amount)
+        self.usage = data.get('usage', self.usage)
+        self.precautions = data.get('precautions', self.precautions)
+        self.save()
+
 
 # 表 15: 通知数据元素表
 class Notification(models.Model):
     notification_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 通知号：主键
-    notification_text = models.TextField(null=False, blank=False)  # 通知内容：非空
+    notification = models.TextField(null=False, blank=False)  # 通知内容：非空
     notification_time = models.DateTimeField(null=False, blank=False)  # 通知时间：非空
-    recipient_student_id = models.CharField(max_length=8, null=False, blank=False)  # 接收人学工号：非空
+    user_id = models.CharField(max_length=8, null=False, blank=False)  # 接收人学工号：非空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'notification_id': 8,
+            'notification_text': None,  # text字段无需长度限制
+            'notification_time': None,  # 时间字段无需长度限制
+            'user_id': 8
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '通知'
+
+    def get_view_dic(self):
+        return {
+            'notification_id': self.notification_id,
+            'notification_text': self.notification,
+            'notification_time': self.notification_time,
+            'user_id': self.user_id
+        }
+
+    def update_view_fields(self, data):
+        self.notification = data.get('notification', self.notification)
+        self.notification_time = data.get('notification_time', self.notification_time)
+        self.user_id = data.get('user_id', self.user_id)
+        self.save()
 
 
 # 表 16: 评价数据元素表
 class Evaluation(models.Model):
     evaluation_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 评价号：主键
-    evaluation_text = models.TextField(null=False, blank=False)  # 评价内容：非空
+    evaluation = models.TextField(null=False, blank=False)  # 评价内容：非空
     evaluation_time = models.DateTimeField(null=False, blank=False)  # 评价时间：非空
-    evaluator_student_id = models.CharField(max_length=8, null=False, blank=False)  # 评价人学工号：非空
-    evaluated_doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 被评价人医工号：非空
+    user_id = models.CharField(max_length=8, null=False, blank=False)  # 评价人学工号：非空
+    doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 被评价人医工号：非空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'evaluation_id': 8,
+            'evaluation': None,  # text字段无需长度限制
+            'evaluation_time': None,  # 时间字段无需长度限制
+            'user_id': 8,
+            'doctor_id': 5
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '评价'
+
+    def get_view_dic(self):
+        return {
+            'evaluation_id': self.evaluation_id,
+            'evaluation': self.evaluation,
+            'evaluation_time': self.evaluation_time,
+            'user_id': self.user_id,
+            'doctor_id': self.doctor_id
+        }
+
+    def update_view_fields(self, data):
+        self.evaluation = data.get('evaluation', self.evaluation)
+        self.evaluation_time = data.get('evaluation_time', self.evaluation_time)
+        self.user_id = data.get('user_id', self.user_id)
+        self.doctor_id = data.get('doctor_id', self.doctor_id)
+        self.save()
 
 
 # 表 17: 图片数据元素表
@@ -339,3 +790,38 @@ class Image(models.Model):
     evaluation_id = models.CharField(max_length=8, null=True, blank=True)  # 评价号：可空
     notification_id = models.CharField(max_length=8, null=True, blank=True)  # 通知号：可空
     drug_id = models.CharField(max_length=9, null=True, blank=True)  # 药品号：可空
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'image_id': 10,
+            'image_path': 255
+        }
+
+    @classmethod
+    def get_optional_fields(cls):
+        return {
+            'evaluation_id': 8,
+            'notification_id': 8,
+            'drug_id': 9
+        }
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '图片'
+
+    def get_view_dic(self):
+        return {
+            'image_id': self.image_id,
+            'image_path': self.image_path,
+            'evaluation_id': self.evaluation_id,
+            'notification_id': self.notification_id,
+            'drug_id': self.drug_id
+        }
+
+    def update_view_fields(self, data):
+        self.image_path = data.get('image_path', self.image_path)
+        self.evaluation_id = data.get('evaluation_id', self.evaluation_id)
+        self.notification_id= data.get('notification_id', self.notification_id)
+        self.drug_id = data.get('drug_id', self.drug_id)
+        self.save()

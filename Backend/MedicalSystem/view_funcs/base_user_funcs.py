@@ -18,9 +18,12 @@ def is_admin(user):
     return user.is_authenticated and hasattr(user, 'admin_id')
 
 
-def fields_check(model_class, data, use_password):
+def fields_check(model_class, data, use_password=False):
     # 获取必填字段及其长度限制
-    required_fields = model_class.get_required_fields(use_password)
+    if use_password is False:
+        required_fields = model_class.get_required_fields()
+    else:
+        required_fields = model_class.get_required_fields(use_password)
 
     # 检查所有必填字段是否存在且不为空
     for field, max_length in required_fields.items():

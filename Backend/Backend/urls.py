@@ -16,11 +16,14 @@ Including another URLconf
 """
 
 from django.urls import path
+from django.contrib import admin
+from django.views.generic import RedirectView
 
 from MedicalSystem import views as ms_views
 
 urlpatterns = [
-    # path("admin/", admin.site.urls),
+    path('', RedirectView.as_view(url='/homepage/', permanent=True)),
+    path("admin/", admin.site.urls),
     path('homepage/', ms_views.homepage, name='homepage'),
     path("page/register/user/", ms_views.page_register_user),
     path("page/register/doctor/", ms_views.page_register_doctor),
@@ -30,6 +33,8 @@ urlpatterns = [
     path("page/login/admin/", ms_views.page_login_admin),
     path("page/view/doctors/", ms_views.view_doctors_page, name='view_doctors'),
     path("page/edit/doctor/", ms_views.edit_doctor_page),
+    path('page/view/appointments/', ms_views.view_appointments_page, name='view_appointments'),
+    path("page/edit/appointment/", ms_views.edit_appointment_page),
     path('register/user/', ms_views.register_user),
     path('register/doctor/', ms_views.register_doctor),
     path('register/admin/', ms_views.register_admin),
@@ -38,6 +43,9 @@ urlpatterns = [
     path("view/doctor/", ms_views.view_doctor),
     path('view/doctors/', ms_views.view_doctors),
     path('edit/doctor/', ms_views.edit_doctor),
+    path('view/appointments/', ms_views.view_appointments),
+    path('view/appointment/', ms_views.view_appointment),
+    path('edit/appointment/', ms_views.edit_appointment),
 
     # 测试用函数
     path('api/user/info/', ms_views.get_user_info),
