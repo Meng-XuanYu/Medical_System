@@ -14,8 +14,6 @@ declare interface _AxiosExtend {
   request<T = any, R = AxiosResponse<T>>(
     url: string,
     method: Method,
-
-
     params?: Record<string | number, any>,
     config?: AxiosRequestConfig
   ): Promise<R>;

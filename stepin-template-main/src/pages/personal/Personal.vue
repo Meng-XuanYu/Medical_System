@@ -1,10 +1,6 @@
 <script lang="ts" setup>
   import { ref } from 'vue';
-  import Conversation from './Conversation.vue';
-  import PlatformSetting from './PlatformSetting.vue';
   import ProfileInfo from './ProfileInfo.vue';
-  import Projects from './Projects.vue';
-
   const select = ref('overview');
 </script>
 <template>
@@ -27,18 +23,16 @@
         </div>
         <a-radio-group v-model:value="select">
           <a-radio-button value="overview">OVERVIEW</a-radio-button>
-          <a-radio-button value="teams">TEAMS</a-radio-button>
-          <a-radio-button value="projects">PROJECTS</a-radio-button>
         </a-radio-group>
       </div>
     </div>
     <div class="mt-24 flex justify-evenly">
-      <PlatformSetting class="flex-1" />
+
       <ProfileInfo class="flex-1 ml-lg" />
-      <Conversation class="flex-1 ml-lg" />
+
     </div>
     <a-divider class="my-10" />
-    <Projects class="mt-lg" />
+
   </div>
 </template>
 <style lang="less" scoped>

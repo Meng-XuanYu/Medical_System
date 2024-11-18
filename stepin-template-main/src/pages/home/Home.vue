@@ -35,6 +35,7 @@
         <pre>
         北京航空航天大学 数据库课程小组设计
         </pre>
+        <button @click="clearCache" class="clear-cache-button">Clear Cache</button>
       </span>
     </div>
   </div>
@@ -42,9 +43,19 @@
 
 <script lang="ts" setup>
 import { useRouter } from 'vue-router';
+import {ElMessage} from "element-plus";
+import http from "@/store/http";
 
 const router = useRouter();
-
+function clearCache() {
+  http.request(
+    '/logout/',
+    'post',
+  );
+  localStorage.clear();
+  sessionStorage.clear();
+  ElMessage.success('Cache cleared successfully');
+}
 const features = [
   {
     title: '预约挂号',
@@ -87,6 +98,25 @@ const features = [
 function goToFeature(route: string) {
   router.push(route);
 }
+
+if (localStorage.getItem('logged') === 'true') {
+  switch (localStorage.getItem('usertype')) {
+    case 's':
+    case 't':
+      router.push('/reserve');
+      break;
+    case 'a':
+      router.push('/admin_doctor');
+      break;
+    case 'd':
+        router.push('/myarrange');
+        break;
+  }
+} else {
+  ElMessage.success('请先登录');
+}
+
+
 </script>
 
 <style scoped lang="less">

@@ -32,7 +32,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="tsx">
 import { ref, computed, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
 

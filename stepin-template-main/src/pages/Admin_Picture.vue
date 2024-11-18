@@ -1,170 +1,176 @@
 <template>
-  <div>
-    <h1>图片管理</h1>
+  <div class="admin-page">
+    <h1 class="title">图片管理</h1>
     <div class="search-bar">
       <a-input-search
           v-model="searchText"
-          placeholder="请输入图片号"
+          placeholder="请输入图片号、评价号、通知号或药品号"
           @search="fetchImages"
           enter-button
+          class="search-input"
       />
-      <a-button type="primary" @click="showUploadModal">上传图片</a-button>
+      <a-button type="primary" @click="showAddModal" class="add-button">
+        <template #icon>
+          <PlusOutlined />
+        </template>
+        新增图片
+      </a-button>
     </div>
-    <a-table :columns="columns" :data-source="images" row-key="image_id">
-      <template #image_path="{ text }">
-        <img :src="text" alt="图片" width="50" />
-      </template>
-      <template #action="{ record }">
-        <a-button type="link" @click="deleteImage(record.image_id)">删除</a-button>
+    <a-table v-bind="$attrs" :columns="columns" :dataSource="images" :pagination="false" class="mytable">
+      <template #bodyCell="{ column, text, record }">
+        <div v-if="column.dataIndex === 'image_id'" class="type1">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'image_path'" class="type2">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'evaluation_id'" class="type3">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'notification_id'" class="type4">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'drug_id'" class="type5">
+          {{ text }}
+        </div>
+        <template v-else-if="column.dataIndex === 'edit'">
+          <a-button type="link" @click="handleEdit(record)" class="edit-button">
+            <EditOutlined />
+            编辑
+          </a-button>
+        </template>
+        <template v-else-if="column.dataIndex === 'delete'">
+          <a-button type="link" @click="handleDelete(record.image_id)" class="delete-button">
+            <DeleteOutlined />
+            删除
+          </a-button>
+        </template>
       </template>
     </a-table>
-
-    <!-- 上传图片的模态框 -->
-    <a-modal
-        v-model:visible="isModalVisible"
-        title="上传图片"
-        @ok="handleOk"
-        @cancel="handleCancel"
-    >
-      <a-form
-          :model="currentImage"
-          :label-col="{ span: 6 }"
-          :wrapper-col="{ span: 14 }"
-          ref="imageForm"
-      >
-        <a-form-item label="图片文件" :rules="[{ required: true, message: '请上传图片' }]">
-          <a-upload
-              :action="uploadUrl"
-              list-type="picture"
-              :file-list="fileList"
-              :before-upload="beforeUpload"
-              @change="handleImageChange"
-          >
-            <a-button icon="upload">点击上传</a-button>
-          </a-upload>
+    <!-- 新增/编辑图片的模态框 -->
+    <div v-if="isModalVisible" class="floating-modal" ref="modal">
+      <div class="modal-header">
+        <span>{{ modalTitle }}</span>
+        <a-button type="link" @click="handleCancel">关闭</a-button>
+      </div>
+      <a-form :model="currentImage" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }" ref="imageForm" class="my-form">
+        <a-form-item label="图片号" :rules="[{ required: true, message: '请输入图片号' }]">
+          <a-input v-model:value="currentImage.image_id" :disabled="isEdit" />
         </a-form-item>
-        <a-form-item label="关联类型">
-          <a-select v-model="currentImage.associationType">
-            <a-select-option value="evaluation">评价</a-select-option>
-            <a-select-option value="notification">通知</a-select-option>
-            <a-select-option value="drug">药品</a-select-option>
-          </a-select>
+        <a-form-item label="存储路径" :rules="[{ required: true, message: '请输入存储路径' }]">
+          <a-input v-model:value="currentImage.image_path" />
         </a-form-item>
-        <a-form-item label="关联ID">
-          <a-input v-model="currentImage.associationId" />
+        <a-form-item label="评价号">
+          <a-input v-model:value="currentImage.evaluation_id" />
         </a-form-item>
+        <a-form-item label="通知号">
+          <a-input v-model:value="currentImage.notification_id" />
+        </a-form-item>
+        <a-form-item label="药品号">
+          <a-input v-model:value="currentImage.drug_id" />
+        </a-form-item>
+        <div class="modal-actions">
+          <a-button @click="handleOk" type="primary">确认</a-button>
+          <a-button @click="handleCancel">取消</a-button>
+        </div>
       </a-form>
-    </a-modal>
+    </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="tsx">
 import { ref, reactive, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import http from "@/store/http";
 
 const searchText = ref('');
 const images = ref([]);
 const isModalVisible = ref(false);
+const modalTitle = ref('新增图片');
+const isEdit = ref(false);
 const currentImage = reactive({
   image_id: '',
   image_path: '',
   evaluation_id: '',
   notification_id: '',
-  drug_id: '',
-  associationType: '',
-  associationId: '',
+  drug_id: ''
 });
-const fileList = ref([]);
 
 const columns = [
   { title: '图片号', dataIndex: 'image_id', key: 'image_id' },
-  {
-    title: '图片',
-    dataIndex: 'image_path',
-    key: 'image_path',
-    scopedSlots: { customRender: 'image_path' },
-  },
+  { title: '存储路径', dataIndex: 'image_path', key: 'image_path' },
   { title: '评价号', dataIndex: 'evaluation_id', key: 'evaluation_id' },
   { title: '通知号', dataIndex: 'notification_id', key: 'notification_id' },
   { title: '药品号', dataIndex: 'drug_id', key: 'drug_id' },
   {
     title: '操作',
-    key: 'action',
-    fixed: 'right',
-    width: 80,
-    scopedSlots: { customRender: 'action' },
+    dataIndex: 'edit',
+    key: 'edit',
+    width: 100,
   },
+  {
+    title: '',
+    dataIndex: 'delete',
+    key: 'delete',
+    width: 100,
+  }
 ];
 
-const uploadUrl = '/api/uploadImage'; // 图片上传接口
-
 function fetchImages() {
-  // 调用后端API获取图片信息，支持搜索
-  images.value = [
-    // 模拟数据，根据searchText过滤
-  ];
+  http.request('/image/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+    images.value = response.data;
+  });
 }
 
-function showUploadModal() {
+function showAddModal() {
+  modalTitle.value = '新增图片';
+  isEdit.value = false;
   Object.assign(currentImage, {
     image_id: '',
     image_path: '',
     evaluation_id: '',
     notification_id: '',
-    drug_id: '',
-    associationType: '',
-    associationId: '',
+    drug_id: ''
   });
-  fileList.value = [];
   isModalVisible.value = true;
 }
 
-function handleOk() {
-  const form = this.$refs.imageForm;
-  form.validateFields().then(async () => {
-    // 根据关联类型设置对应的关联ID
-    if (currentImage.associationType === 'evaluation') {
-      currentImage.evaluation_id = currentImage.associationId;
-    } else if (currentImage.associationType === 'notification') {
-      currentImage.notification_id = currentImage.associationId;
-    } else if (currentImage.associationType === 'drug') {
-      currentImage.drug_id = currentImage.associationId;
+function handleEdit(record: any) {
+  modalTitle.value = '编辑图片';
+  isEdit.value = true;
+  Object.assign(currentImage, record);
+  isModalVisible.value = true;
+}
+
+async function handleOk() {
+  if (isEdit.value) {
+    try {
+      await http.request('/image/update', 'POST_JSON', { ...currentImage });
+      message.success('编辑图片成功');
+    } finally {
+      isModalVisible.value = false;
+      fetchImages();
     }
-    // 调用后端API保存图片信息
-    message.success('图片上传成功');
-    isModalVisible.value = false;
-    fetchImages();
-  });
+  } else {
+    try {
+      await http.request('/image/add', 'POST_JSON', { ...currentImage });
+      message.success('新增图片成功');
+    } finally {
+      isModalVisible.value = false;
+      fetchImages();
+    }
+  }
 }
 
 function handleCancel() {
   isModalVisible.value = false;
 }
 
-function deleteImage(image_id) {
-  // 调用后端API删除图片
+function handleDelete(image_id: any) {
+  http.request('/image/delete', 'POST_JSON', { image_id: image_id });
   message.success('删除图片成功');
   fetchImages();
-}
-
-function handleImageChange(info) {
-  if (info.file.status === 'done') {
-    // 上传成功，获取图片路径
-    const response = info.file.response;
-    currentImage.image_id = response.image_id;
-    currentImage.image_path = response.image_path;
-    message.success('图片上传成功');
-  } else if (info.file.status === 'error') {
-    message.error('图片上传失败');
-  }
-}
-
-function beforeUpload(file) {
-  const isImage = file.type.startsWith('image/');
-  if (!isImage) {
-    message.error('只能上传图片文件');
-  }
-  return isImage;
 }
 
 onMounted(() => {
@@ -172,10 +178,135 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+
+<style>
+.admin-page {
+  padding: 20px;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  font-family: 'Arial', sans-serif;
+}
+
+.title {
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #aaa;
+}
+
 .search-bar {
   display: flex;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.search-input {
+  width: 800px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.add-button {
+  background-color: #1890ff;
+  color: white;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: bold;
+  height: 40px;
+}
+
+.add-button:hover {
+  background-color: #40a9ff;
+}
+
+.mytable {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.type1 {
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.type2 {
+
+  color: #52c41a;
+}
+
+.type3 {
+
+  color: #faad14;
+}
+
+.type4 {
+
+  color: #eb2f96;
+}
+
+.edit-button {
+  color: #1890ff;
+}
+
+.delete-button {
+  color: #ff4d4f;
+}
+
+.floating-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 400px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 999;
+  padding: 20px;
+  overflow: hidden;
+  cursor: move;
+
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  cursor: move;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.my-form {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.my-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.date-select-container {
+  display: flex;
+  gap: 10px;
+}
+
+.date-select {
+  width: 100px;
+}
+
+.text-subtext {
+  color: #888;
 }
 </style>

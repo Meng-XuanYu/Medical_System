@@ -1,7 +1,6 @@
-<!-- Appointment.vue -->
 <template>
   <div class="appointment-page">
-    <h1>预约挂号</h1>
+    <h1 class="page-title">预约挂号</h1>
     <div class="doctor-selection">
       <a-form :layout="'inline'">
         <a-form-item label="选择科室">
@@ -19,7 +18,8 @@
           </a-select>
         </a-form-item>
         <a-form-item label="选择日期">
-          <a-date-picker v-model="selectedDate" style="width: 200px;" @change="fetchSchedules" />
+          <a-date-picker v-model="selectedDate" style="width: 200px;" @change="fetchSchedules" :get-popup-container="(triggerNode) =>triggerNode.parentNode">
+          </a-date-picker>
         </a-form-item>
       </a-form>
     </div>
@@ -62,7 +62,7 @@ import { message } from 'ant-design-vue';
 import axios from 'axios';
 
 const user = reactive({
-  id: 'S1234567', // 学工号或家属号，根据登录身份设置
+  id: 'S1234567',
   name: '张学生',
 });
 
@@ -93,11 +93,6 @@ const columns = [
 ];
 
 function fetchDepartments() {
-  // axios.get('/api/departments').then(response => {
-  //   departments.value = response.data;
-  // });
-
-  // 模拟数据
   departments.value = [
     { department_id: 'D01', department_name: '内科' },
     { department_id: 'D02', department_name: '外科' },
@@ -106,11 +101,6 @@ function fetchDepartments() {
 
 function fetchDoctors() {
   if (!selectedDepartment.value) return;
-  // axios.get(`/api/doctors?department_id=${selectedDepartment.value}`).then(response => {
-  //   doctors.value = response.data;
-  // });
-
-  // 模拟数据
   doctors.value = [
     { staff_id: 'D1001', name: '李医生' },
     { staff_id: 'D1002', name: '王医生' },
@@ -119,14 +109,7 @@ function fetchDoctors() {
 
 function fetchSchedules() {
   if (!selectedDoctor.value || !selectedDate.value) return;
-  // 将日期格式化为字符串
   const dateStr = selectedDate.value.format('YYYY-MM-DD');
-
-  // axios.get(`/api/schedules?staff_id=${selectedDoctor.value}&date=${dateStr}`).then(response => {
-  //   schedules.value = response.data;
-  // });
-
-  // 模拟数据
   schedules.value = [
     { schedule_id: 'S001', date: dateStr, time_slot: '8-10' },
     { schedule_id: 'S002', date: dateStr, time_slot: '10-11:30' },
@@ -134,15 +117,7 @@ function fetchSchedules() {
 }
 
 function isFullBooked(timeSlot) {
-  // 检查该时间段预约人数是否已满
-  // 这里需要调用后端API获取预约人数
-  // 返回 true 或 false
-
-  // 模拟逻辑
-  // 假设 timeSlot 为 '8-10'，如果时间段在 schedules 中，则检查是否已满
-
-  // 这里我们简单模拟，每个时间段随机返回是否已满
-  return Math.random() < 0.2; // 20% 的概率为已满
+  return Math.random() < 0.2;
 }
 
 function selectTimeSlot(timeSlot) {
@@ -151,7 +126,6 @@ function selectTimeSlot(timeSlot) {
     return;
   }
 
-  // 检查是否有未完成的预约
   const hasPendingAppointment = appointments.value.some(app => app.status === '未完成');
   if (hasPendingAppointment) {
     message.warning('您有未完成的预约，无法再次预约');
@@ -159,30 +133,11 @@ function selectTimeSlot(timeSlot) {
   }
 
   selectedTimeSlot.value = timeSlot;
-
-  // 进行预约
-  // 调用后端API提交预约信息
-  // axios.post('/api/appointments', {
-  //   user_id: user.id,
-  //   staff_id: selectedDoctor.value,
-  //   date: selectedDate.value.format('YYYY-MM-DD'),
-  //   time_slot: selectedTimeSlot.value,
-  // }).then(response => {
-  //   message.success('预约成功');
-  //   fetchAppointments();
-  // });
-
-  // 模拟预约成功
   message.success('预约成功');
   fetchAppointments();
 }
 
 function fetchAppointments() {
-  // axios.get(`/api/appointments?user_id=${user.id}`).then(response => {
-  //   appointments.value = response.data;
-  // });
-
-  // 模拟数据
   appointments.value = [
     {
       appointment_id: 'A001',
@@ -204,10 +159,21 @@ onMounted(() => {
 <style scoped>
 .appointment-page {
   padding: 24px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.page-title {
+  font-size: 24px;
+  color: #1890ff;
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .doctor-selection {
   margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .schedule-selection {
@@ -221,5 +187,23 @@ onMounted(() => {
 
 .appointment-records {
   margin-top: 24px;
+}
+
+a-card {
+  transition: transform 0.3s;
+}
+
+a-card:hover {
+  transform: scale(1.05);
+}
+
+a-tag.blue {
+  background-color: #1890ff;
+  color: white;
+}
+
+a-tag.green {
+  background-color: #52c41a;
+  color: white;
 }
 </style>

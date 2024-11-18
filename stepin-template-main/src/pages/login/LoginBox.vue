@@ -128,12 +128,8 @@ function login() {
   if (userRole.value === 'user') {
     if (form.username.length === 8) {
       form.userType = 's'; // 学生
-    } else if (form.username.length === 9) {
-      form.userType = 't'; // 教师
     } else {
-      loading.value = false;
-      emit('failure', '用户名长度不正确', form);
-      return;
+      form.userType = 't'; // 教师
     }
   } else if (userRole.value === 'admin') {
     form.userType = 'a'; // 管理员

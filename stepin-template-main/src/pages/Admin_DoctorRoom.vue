@@ -1,49 +1,73 @@
 <template>
-  <div>
-    <h1>科室管理</h1>
+  <div class="admin-page">
+    <h1 class="title">科室管理</h1>
     <div class="search-bar">
       <a-input-search
           v-model="searchText"
-          placeholder="请输入科室号或科室名称"
+          placeholder="请输入科室号、科室名称"
           @search="fetchDepartments"
           enter-button
+          class="search-input"
       />
-      <a-button type="primary" @click="showAddModal">新增科室</a-button>
+      <a-button type="primary" @click="showAddModal" class="add-button">
+        <template #icon>
+          <PlusOutlined />
+        </template>
+        新增科室
+      </a-button>
     </div>
-    <a-table :columns="columns" :data-source="departments" row-key="department_id">
-      <template #action="{ record }">
-        <a-button type="link" @click="showEditModal(record)">编辑</a-button>
-        <a-button type="link" @click="deleteDepartment(record.department_id)">删除</a-button>
+    <a-table v-bind="$attrs" :columns="columns" :dataSource="departments" :pagination="false" class="mytable">
+      <template #bodyCell="{ column, text, record }">
+        <div v-if="column.dataIndex === 'department_id'" class="type1">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'department_name'" class="type2">
+          {{ text }}
+        </div>
+        <template v-else-if="column.dataIndex === 'edit'">
+          <a-button type="link" @click="handleEdit(record)" class="edit-button">
+            <EditOutlined />
+            编辑
+          </a-button>
+        </template>
+        <template v-else-if="column.dataIndex === 'delete'">
+          <a-button type="link" @click="handleDelete(record.department_id)" class="delete-button">
+            <DeleteOutlined />
+            删除
+          </a-button>
+        </template>
+        <div v-else class="text-subtext">
+          {{ text }}
+        </div>
       </template>
     </a-table>
 
-    <!-- 新增/编辑科室的模态框 -->
-    <a-modal
-        v-model:visible="isModalVisible"
-        :title="modalTitle"
-        @ok="handleOk"
-        @cancel="handleCancel"
-    >
-      <a-form
-          :model="currentDepartment"
-          :label-col="{ span: 6 }"
-          :wrapper-col="{ span: 14 }"
-          ref="departmentForm"
-      >
+    <div v-if="isModalVisible" class="floating-modal" ref="modal">
+      <div class="modal-header">
+        <span>{{ modalTitle }}</span>
+        <a-button type="link" @click="handleCancel">关闭</a-button>
+      </div>
+      <a-form :model="currentDepartment" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }" ref="departmentForm" class="my-form">
         <a-form-item label="科室号" :rules="[{ required: true, message: '请输入科室号' }]">
-          <a-input v-model="currentDepartment.department_id" :disabled="isEdit" />
+          <a-input v-model:value="currentDepartment.department_id" :disabled="isEdit" />
         </a-form-item>
         <a-form-item label="科室名称" :rules="[{ required: true, message: '请输入科室名称' }]">
-          <a-input v-model="currentDepartment.department_name" />
+          <a-input v-model:value="currentDepartment.department_name" />
         </a-form-item>
+        <div class="modal-actions">
+          <a-button @click="handleOk" type="primary">确认</a-button>
+          <a-button @click="handleCancel">取消</a-button>
+        </div>
       </a-form>
-    </a-modal>
+    </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="tsx">
 import { ref, reactive, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import http from "@/store/http";
 
 const searchText = ref('');
 const departments = ref([]);
@@ -52,7 +76,7 @@ const modalTitle = ref('新增科室');
 const isEdit = ref(false);
 const currentDepartment = reactive({
   department_id: '',
-  department_name: '',
+  department_name: ''
 });
 
 const columns = [
@@ -60,57 +84,65 @@ const columns = [
   { title: '科室名称', dataIndex: 'department_name', key: 'department_name' },
   {
     title: '操作',
-    key: 'action',
-    scopedSlots: { customRender: 'action' },
+    dataIndex: 'edit',
+    key: 'edit',
+    width: 100,
   },
+  {
+    title: '',
+    dataIndex: 'delete',
+    key: 'delete',
+    width: 100,
+  }
 ];
 
 function fetchDepartments() {
-  // 调用后端API获取科室信息，支持搜索
-  departments.value = [
-    // 模拟数据，根据searchText过滤
-  ];
+  http.request('/department/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+    departments.value = response.data;
+  });
 }
 
 function showAddModal() {
   modalTitle.value = '新增科室';
   isEdit.value = false;
-  Object.assign(currentDepartment, {
-    department_id: '',
-    department_name: '',
-  });
+  Object.assign(currentDepartment, { department_id: '', department_name: '' });
   isModalVisible.value = true;
 }
 
-function showEditModal(record) {
+function handleEdit(record: any) {
   modalTitle.value = '编辑科室';
   isEdit.value = true;
   Object.assign(currentDepartment, record);
   isModalVisible.value = true;
 }
 
-function handleOk() {
-  const form = this.$refs.departmentForm;
-  form.validateFields().then(async () => {
-    if (isEdit.value) {
-      // 调用后端API更新科室信息
-      message.success('更新科室信息成功');
-    } else {
-      // 调用后端API新增科室
-      message.success('新增科室成功');
+async function handleOk() {
+  if (isEdit.value) {
+    try {
+      await http.request('/department/update', 'POST_JSON', { ...currentDepartment });
+      message.success('编辑科室信息成功');
+    } finally {
+      isModalVisible.value = false;
+      fetchDepartments();
     }
-    isModalVisible.value = false;
-    fetchDepartments();
-  });
+  } else {
+    try {
+      await http.request('/department/add', 'POST_JSON', { ...currentDepartment });
+      message.success('新增科室信息成功');
+    } finally {
+      isModalVisible.value = false;
+      fetchDepartments();
+    }
+  }
 }
 
 function handleCancel() {
   isModalVisible.value = false;
 }
 
-function deleteDepartment(department_id) {
-  // 调用后端API删除科室
-  message.success('删除科室成功');
+function handleDelete(department_id: any) {
+  http.request('/department/delete', 'POST_JSON', { department_id });
+  message.success('删除科室信息成功');
   fetchDepartments();
 }
 
@@ -119,10 +151,134 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style>
+.admin-page {
+  padding: 20px;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  font-family: 'Arial', sans-serif;
+}
+
+.title {
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #aaa;
+}
+
 .search-bar {
   display: flex;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.search-input {
+  width: 800px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.add-button {
+  background-color: #1890ff;
+  color: white;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: bold;
+  height: 40px;
+}
+
+.add-button:hover {
+  background-color: #40a9ff;
+}
+
+.mytable {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.type1 {
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.type2 {
+
+  color: #52c41a;
+}
+
+.type3 {
+
+  color: #faad14;
+}
+
+.type4 {
+
+  color: #eb2f96;
+}
+
+.edit-button {
+  color: #1890ff;
+}
+
+.delete-button {
+  color: #ff4d4f;
+}
+
+.floating-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 400px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 999;
+  padding: 20px;
+  overflow: hidden;
+  cursor: move;
+
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  cursor: move;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.my-form {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.my-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.date-select-container {
+  display: flex;
+  gap: 10px;
+}
+
+.date-select {
+  width: 100px;
+}
+
+.text-subtext {
+  color: #888;
 }
 </style>

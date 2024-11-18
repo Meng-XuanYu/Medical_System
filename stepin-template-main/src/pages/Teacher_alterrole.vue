@@ -21,7 +21,7 @@ import axios from 'axios';
 
 const user = reactive({
   id: 'T1234567',
-  name: '李老师',
+  name: localStorage.getItem(),
 });
 
 const familyMembers = ref([]);

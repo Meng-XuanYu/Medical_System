@@ -1,11 +1,11 @@
 <template>
   <div class="admin-page">
-    <h1 class="title">体检信息管理</h1>
+    <h1 class="title">通知管理</h1>
     <div class="search-bar">
       <a-input-search
           v-model="searchText"
-          placeholder="请输入体检预约号、体检项目号、体检结果或体检学生的学号"
-          @search="fetchExaminationInfos"
+          placeholder="请输入通知号、通知内容或接收人学工号"
+          @search="fetchNotifications"
           enter-button
           class="search-input"
       />
@@ -13,21 +13,21 @@
         <template #icon>
           <PlusOutlined />
         </template>
-        新增体检项目
+        新增通知
       </a-button>
     </div>
-    <a-table v-bind="$attrs" :columns="columns" :dataSource="examinationInfos" :pagination="false" class="mytable">
+    <a-table v-bind="$attrs" :columns="columns" :dataSource="notifications" :pagination="false" class="mytable">
       <template #bodyCell="{ column, text, record }">
-        <div v-if="column.dataIndex === 'exam_appointment_id'" class="type1">
+        <div v-if="column.dataIndex === 'notification_id'" class="type1">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'examination_id'" class="type2">
+        <div v-else-if="column.dataIndex === 'notification_text'" class="type2">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'examination_result'" class="type3">
+        <div v-else-if="column.dataIndex === 'notification_time'" class="type3">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'user_id'" class="type4">
+        <div v-else-if="column.dataIndex === 'staff_id'" class="type4">
           {{ text }}
         </div>
         <template v-else-if="column.dataIndex === 'edit'">
@@ -37,34 +37,31 @@
           </a-button>
         </template>
         <template v-else-if="column.dataIndex === 'delete'">
-          <a-button type="link" @click="handleDelete(record.exam_appointment_id)" class="delete-button">
+          <a-button type="link" @click="handleDelete(record.notification_id)" class="delete-button">
             <DeleteOutlined />
             删除
           </a-button>
         </template>
-        <div v-else class="text-subtext">
-          {{ text }}
-        </div>
       </template>
     </a-table>
-    <!-- 新增/编辑体检项目的模态框 -->
+    <!-- 新增/编辑通知的模态框 -->
     <div v-if="isModalVisible" class="floating-modal" ref="modal">
       <div class="modal-header">
         <span>{{ modalTitle }}</span>
         <a-button type="link" @click="handleCancel">关闭</a-button>
       </div>
-      <a-form :model="currentExaminationInfo" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }" ref="examinationForm" class="my-form">
-        <a-form-item label="体检预约号" :rules="[{ required: true, message: '请输入体检预约号' }]">
-          <a-input v-model:value="currentExaminationInfo.exam_appointment_id" :disabled="isEdit" />
+      <a-form :model="currentNotification" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }" ref="notificationForm" class="my-form">
+        <a-form-item label="通知号" :rules="[{ required: true, message: '请输入通知号' }]">
+          <a-input v-model:value="currentNotification.notification_id" :disabled="isEdit" />
         </a-form-item>
-        <a-form-item label="体检项目号" :rules="[{ required: true, message: '请输入体检项目号' }]">
-          <a-textarea v-model:value="currentExaminationInfo.examination_id" rows="3" />
+        <a-form-item label="通知内容" :rules="[{ required: true, message: '请输入通知内容' }]">
+          <a-textarea v-model:value="currentNotification.notification_text" rows="3" />
         </a-form-item>
-        <a-form-item label="体检结果" :rules="[{ required: true, message: '请输入体检结果' }]">
-          <a-textarea v-model:value="currentExaminationInfo.examination_result" rows="3" />
+        <a-form-item label="通知时间" :rules="[{ required: true, message: '请输入通知时间' }]">
+          <a-date-picker v-model:value="currentNotification.notification_time" format="YYYY-MM-DD HH:mm:ss" />
         </a-form-item>
-        <a-form-item label="体检人学号" :rules="[{ required: true, message: '请输入体检人学号' }]">
-          <a-input v-model:value="currentExaminationInfo.user_id" />
+        <a-form-item label="接收人学工号" :rules="[{ required: true, message: '请输入接收人学工号' }]">
+          <a-input v-model:value="currentNotification.staff_id" />
         </a-form-item>
         <div class="modal-actions">
           <a-button @click="handleOk" type="primary">确认</a-button>
@@ -82,28 +79,22 @@ import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vu
 import http from "@/store/http";
 
 const searchText = ref('');
-const examinationInfos = ref([]);
+const notifications = ref([]);
 const isModalVisible = ref(false);
-const modalTitle = ref('新增体检预约信息');
+const modalTitle = ref('新增通知');
 const isEdit = ref(false);
-const dateform = reactive({
-  year: '',
-  month: '',
-  day: '',
+const currentNotification = reactive({
+  notification_id: '',
+  notification_text: '',
+  notification_time: '',
+  staff_id: ''
 });
-const currentExaminationInfo = reactive({
-  exam_appointment_id: '',
-  examination_id: '',
-  examination_result: '',
-  user_id: '',
-});
-
 
 const columns = [
-  { title: '体检预约号', dataIndex: 'exam_appointment_id', key: 'exam_appointment_id' },
-  { title: '体检项目号', dataIndex: 'examination_id', key: 'examination_id' },
-  { title: '体检结果', dataIndex: 'examination_result', key: 'examination_result' },
-  { title: '体检人学号', dataIndex: 'user_id', key: 'user_id' },
+  { title: '通知号', dataIndex: 'notification_id', key: 'notification_id' },
+  { title: '通知内容', dataIndex: 'notification_text', key: 'notification_text' },
+  { title: '通知时间', dataIndex: 'notification_time', key: 'notification_time' },
+  { title: '接收人学工号', dataIndex: 'staff_id', key: 'staff_id' },
   {
     title: '操作',
     dataIndex: 'edit',
@@ -118,52 +109,47 @@ const columns = [
   }
 ];
 
-function fetchExaminationInfos() {
-  http.request('/examinationInfo/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
-    examinationInfos.value = response.data;
+function fetchNotifications() {
+  http.request('/notification/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+    notifications.value = response.data;
   });
 }
 
 function showAddModal() {
-  modalTitle.value = '新增体检预约信息';
+  modalTitle.value = '新增通知';
   isEdit.value = false;
-  Object.assign(currentExaminationInfo, {
-    exam_appointment_id: '',
-    examination_id: '',
-    examination_result: '',
-    user_id: '',
+  Object.assign(currentNotification, {
+    notification_id: '',
+    notification_text: '',
+    notification_time: '',
+    staff_id: ''
   });
-  dateform.year = '';
-  dateform.month = '';
-  dateform.day = '';
   isModalVisible.value = true;
 }
 
 function handleEdit(record: any) {
-
-  modalTitle.value = '编辑体检预约信息';
+  modalTitle.value = '编辑通知';
   isEdit.value = true;
-  Object.assign(currentExaminationInfo, record);
+  Object.assign(currentNotification, record);
   isModalVisible.value = true;
 }
 
 async function handleOk() {
-
   if (isEdit.value) {
     try {
-      await http.request('/examinationInfo/update', 'POST_JSON', { ...currentExaminationInfo });
-      message.success('编辑体检预约信息成功');
+      await http.request('/notification/update', 'POST_JSON', { ...currentNotification });
+      message.success('编辑通知成功');
     } finally {
       isModalVisible.value = false;
-      fetchExaminationInfos();
+      fetchNotifications();
     }
   } else {
     try {
-      await http.request('/examinationInfo/add', 'POST_JSON', { ...currentExaminationInfo });
-      message.success('新增体检预约信息成功');
+      await http.request('/notification/add', 'POST_JSON', { ...currentNotification });
+      message.success('新增通知成功');
     } finally {
       isModalVisible.value = false;
-      fetchExaminationInfos();
+      fetchNotifications();
     }
   }
 }
@@ -172,16 +158,17 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(examination_id: any) {
-  http.request('/examinationInfo/delete', 'POST_JSON', { examination_id: examination_id });
-  message.success('删除体检预约信息成功');
-  fetchExaminationInfos();
+function handleDelete(notification_id: any) {
+  http.request('/notification/delete', 'POST_JSON', { notification_id: notification_id });
+  message.success('删除通知成功');
+  fetchNotifications();
 }
 
 onMounted(() => {
-  fetchExaminationInfos();
+  fetchNotifications();
 });
 </script>
+
 <style>
 .admin-page {
   padding: 20px;

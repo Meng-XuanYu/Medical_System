@@ -15,9 +15,10 @@ import '@fortawesome/fontawesome-free/css/all.css';
 // import 'default-passive-events';
 import '@/theme/index.less';
 import { AuthPlugin, IconfontPlugin } from '@/plugins';
-
+import VDrag from "v-drag";
 const app = createApp(App);
 
+app.use(VDrag);
 app.use(pinia);
 app.use(router);
 app.use(stepin, { router });

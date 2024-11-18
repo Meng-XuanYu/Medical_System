@@ -41,35 +41,6 @@
       ],
     },
     {
-      title: '动态',
-      list: [
-        {
-          title: '影佑',
-          content: 'xxxxxxxxxxxxxxxxxx',
-          img: 'http://i2.hdslb.com/bfs/face/80b6731ccf865ca7a4ac17e6e8848fd0e34c1b91.jpg',
-          time: 0,
-        },
-        {
-          title: '影佑',
-          content: 'xxxxxxxxxxxxxxxxxx',
-          img: 'http://i2.hdslb.com/bfs/face/80b6731ccf865ca7a4ac17e6e8848fd0e34c1b91.jpg',
-          time: 0,
-        },
-        {
-          title: '影佑',
-          content: 'xxxxxxxxxxxxxxxxxx',
-          img: 'http://i2.hdslb.com/bfs/face/80b6731ccf865ca7a4ac17e6e8848fd0e34c1b91.jpg',
-          time: 0,
-        },
-        {
-          title: '影佑',
-          content: 'xxxxxxxxxxxxxxxxxx',
-          img: 'http://i2.hdslb.com/bfs/face/80b6731ccf865ca7a4ac17e6e8848fd0e34c1b91.jpg',
-          time: 0,
-        },
-      ],
-    },
-    {
       title: '通知',
       list: [
         {
@@ -108,24 +79,8 @@
       </template>
     </a-input>
   </StepinHeaderAction>
-  <StepinHeaderAction>
-    <DayNightSwitch />
-  </StepinHeaderAction>
-  <StepinHeaderAction>
-    <a class="action-item" href="http://github.com/stepui/stepin-template" target="_blank">
-      <GithubOutlined />
-    </a>
-  </StepinHeaderAction>
-  <StepinHeaderAction>
-    <a class="action-item" href="http://gitee.com/stepui/stepin-template" target="_blank">
-      <img class="gitee-logo" src="@/assets/gitee.svg" />
-    </a>
-  </StepinHeaderAction>
-  <StepinHeaderAction>
-    <div class="action-item setting" @click="$emit('showSetting')">
-      <SettingOutlined />
-    </div>
-  </StepinHeaderAction>
+
+
 
   <a-popover placement="bottomRight">
     <StepinHeaderAction>

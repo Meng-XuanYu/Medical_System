@@ -35,37 +35,44 @@ export type AccountParams = {
   usertype: string,
 }
 
-export type TokenResult = {
-  token: string;
-  expires: number;
-};
+export function getCookie(name: string | any[]) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
 export const useAccountStore = defineStore('account', {
-  state() {
-    return {
-      account: {} as Account,
-      permissions: [] as string[],
-      role: '',
-      logged: true,
-      userType: '',
-    };
-  },
+
   actions: {
     logged: undefined,
     async Register( account: AccountParams
       ) {
-      fetch('/api/user/register', {
+      fetch('/api/register/user/', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')  // CSRF token
+        },
         body: JSON.stringify({
-          id: account.username,
+          user_id: account.username,
           password: account.password,
           name: account.name,
           gender: account.gender,
           birth: account.borndate,
           id_number: account.identity,
-          usertype: account.usertype,
+          user_type: account.usertype,
           phone: account.phone,
-
-        })
+        }),
+        credentials: 'same-origin'
       })
           .then(response => response.json())
           .then(data => {
@@ -79,45 +86,63 @@ export const useAccountStore = defineStore('account', {
             }
           })
     },
+
     async login(username: string, password: string, userType: string) {
-      const id = username;
-      return http
-          .request<TokenResult,Response<any>>('/login', 'post_json', { id, password, userType })
-          .then(async (response) => {
-            if (response.data.status === 'success') {
+      fetch('/api/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')  // CSRF token
+        },
+        body: JSON.stringify({
+          id: username,
+          password: password,
+          user_type: userType,
+        }),
+        credentials: 'same-origin'
+      })
+          .then(response => response.json())
+          .then(async data => {
+
+            if (data.status === 'success') {
               this.logged = true;
-              http.setAuthorization(`Bearer ${response.data.token}`, new Date(response.data.expires));
-
+              http.setAuthorization(`Bearer ${data.token}`, new Date(data.expires));
               await useMenuStore().getMenuList(userType);
-
-              this.userType = userType;
+              localStorage.setItem('usertype', userType);
+              localStorage.setItem('username', username);
+              localStorage.setItem('logged', 'true');
               switch (userType) {
                 case 'a':
                   await router.push('/admin_doctor');
                   break;
                 case 't':
-                  await router.push('/workplace');
+                  await router.push('/reserve');
                   break;
                 case 's':
-                  await router.push('/workplace');
+                  await router.push('/reserve');
                   break;
                 default:
                   await router.push('/myarrange');
               }
-              return response.data;
+              return data;
             } else {
-              return Promise.reject(response.message);
+              ElMessage.error('登录失败：' + data.message);
+              return Promise.reject(data.message);
             }
           });
     },
-    async logout() {
 
+    async logout() {
       return new Promise<boolean>((resolve) => {
         localStorage.removeItem('stepin-menu');
         http.removeAuthorization();
         this.logged = false;
+        localStorage.clear();
+        sessionStorage.clear();
+        http.request('/logout/', 'post');
         router.replace('/home');
         resolve(true);
+
 
       });
     },
@@ -125,22 +150,31 @@ export const useAccountStore = defineStore('account', {
       const { setAuthLoading } = useLoadingStore();
       setAuthLoading(true);
       return http
-        .request<Account, Response<Profile>>('/account', 'get')
-        .then((response) => {
-          if (response.code === 0) {
-            const { setAuthorities } = useAuthStore();
-            const { account, permissions, role } = response.data;
-            this.account = account;
-            this.permissions = permissions;
-            this.role = role;
-            setAuthorities(permissions);
-            return response.data;
-          } else {
-            return Promise.reject(response);
-          }
-        })
-        .finally(() => setAuthLoading(false));
+          .request<Account, Response<Profile>>('/account', 'get')
+          .then((response) => {
+            if (response.code === 0) {
+              const { setAuthorities } = useAuthStore();
+              const { account, permissions, role } = response.data;
+              this.account = account;
+              this.permissions = permissions;
+              this.role = role;
+              setAuthorities(permissions);
+              return response.data;
+            } else {
+              return Promise.reject(response);
+            }
+          })
+          .finally(() => setAuthLoading(false));
     },
+  },
+  state() {
 
+    return {
+      account: {} as Account,
+      permissions: [] as string[],
+      role: '',
+      logged: true,
+      userType: '',
+    };
   },
 });

@@ -34,15 +34,18 @@
     </a-tabs>
 
     <!-- 详情模态框 -->
-    <a-modal
-        v-model:visible="isModalVisible"
+    <div
+        v-if ="isModalVisible"
         :title="modalTitle"
         @cancel="handleModalCancel"
-        footer={null}
-        width="800px"
+        class="floating-modal"
     >
+      <div class="modal-header">
+        <span>{{ modalTitle }}</span>
+        <a-button type="link" @click="handleModalCancel">关闭</a-button>
+      </div>
       <div v-html="modalContent"></div>
-    </a-modal>
+    </div>
   </div>
 </template>
 
@@ -218,6 +221,30 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  cursor: move;
+  font-size: 18px;
+  font-weight: bold;
+}
+.floating-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 400px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 999;
+  padding: 20px;
+  overflow: hidden;
+  cursor: move;
+
+}
 .health-records-page {
   padding: 24px;
 }

@@ -147,7 +147,7 @@
 
   /**
    * 编辑
-   * @param record
+
    */
   function edit(record: Author) {
     editRecord.value = record;
