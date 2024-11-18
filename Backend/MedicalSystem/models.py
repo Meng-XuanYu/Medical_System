@@ -247,7 +247,7 @@ class Admin(BaseUser):
 # 表 4: 家属数据元素表
 class FamilyMember(models.Model):
     family_id = models.CharField(max_length=2)  # 家属号：主键
-    user_id = models.CharField(max_length=8)  # 学工号：主键
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True, null=True, blank=False)  # 外键引用 User
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 关系：非空
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
@@ -256,7 +256,10 @@ class FamilyMember(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['family_id', 'user_id'], name='unique_family_teacher')
+            models.UniqueConstraint(fields=['family_id', 'user'], name='unique_family_teacher')
+        ]
+        indexes = [
+            models.Index(fields=['family_id', 'user']),
         ]
 
     @classmethod
@@ -351,9 +354,8 @@ class Department(models.Model):
 # 表 6: 排班数据元素表
 class Schedule(models.Model):
     schedule_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 排班号：主键
-    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, to_field='doctor_id', db_index=True)  # 外键引用 Doctor
-    department = models.ForeignKey('Department', on_delete=models.CASCADE, to_field='department_id',
-                                   db_index=True)  # 外键引用 Department
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, null=True, db_index=True)  # 外键引用 Doctor
+    department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, db_index=True)  # 外键引用 Department
     schedule_time = models.CharField(max_length=6, null=False, blank=False)  # 排班时间：非空
 
     class Meta:

@@ -120,24 +120,22 @@
   </ThemeProvider>
 </template>
 <style lang="less" scoped>
-  @keyframes ripple-animation {
+  @keyframes gradient-animation {
     0% {
       background-position: 0% 50%;
     }
-
     50% {
-      background-position: 50% 50%;
+      background-position: 30% 70%;
     }
-
     100% {
       background-position: 0% 50%;
     }
   }
 
-  .front-view {
-    background: repeating-linear-gradient(45deg, #2f2fea, red);
-    background-size: 200% 200%;
-    animation: ripple-animation 10s ease infinite;
+.front-view {
+  background: linear-gradient(270deg, #0077ff, #2feabe);
+  background-size: 400% 400%;
+  animation: gradient-animation 5s ease infinite;
 
     .front-header {
       .front-nav-item {

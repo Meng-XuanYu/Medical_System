@@ -74,25 +74,25 @@ WSGI_APPLICATION = "Backend.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-        'NAME': 'medical_system',  # 数据库名称
-        'HOST': '127.0.0.1',  # 数据库地址，本机 ip 地址 127.0.0.1
-        'PORT': 3306,  # 端口
-        'USER': 'root',  # 数据库用户名
-        'PASSWORD': '123456',  # 数据库密码
-    }
     # 'default': {
     #     'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-    #     'NAME': 'h_db22373040',  # 数据库名称
-    #     'HOST': '120.46.3.97',  # 数据库地址
+    #     'NAME': 'medical_system',  # 数据库名称
+    #     'HOST': '127.0.0.1',  # 数据库地址，本机 ip 地址 127.0.0.1
     #     'PORT': 3306,  # 端口
-    #     'USER': 'u22373040',  # 数据库用户名
-    #     'PASSWORD': 'Aa873680',  # 数据库密码
-    #     'OPTIONS': {
-    #         'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-    #     },
+    #     'USER': 'root',  # 数据库用户名
+    #     'PASSWORD': '123456',  # 数据库密码
     # }
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
+        'NAME': 'h_db22373040',  # 数据库名称
+        'HOST': '120.46.3.97',  # 数据库地址
+        'PORT': 3306,  # 端口
+        'USER': 'u22373040',  # 数据库用户名
+        'PASSWORD': 'Aa873680',  # 数据库密码
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
 }
 
 # Password validation
