@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>修改预约信息</title>
+</head>
+<body>
+<button type="button" onclick="goToHomepage()">回到主页</button>
+<button type="button" onclick="goToViewAppointments()">回到预约信息</button>
+<h2>修改预约信息</h2>
+<form id="edit-appointment-form">
+    <label for="relationship">关系:</label>
+    <input type="text" id="relationship" name="relationship"><br>
+    <label for="schedule_id">排班号:</label>
+    <input type="text" id="schedule_id" name="schedule_id"><br>
+    <label for="user_id">学工号:</label>
+    <input type="text" id="user_id" name="user_id"><br>
+    <button type="button" onclick="submitForm()">保存修改</button>
+</form>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const appointmentId = urlParams.get('appointment_id');
+
+    document.addEventListener("DOMContentLoaded", async function () {
+        const response = await fetch(`/view/appointment/?appointment_id=${appointmentId}`, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        });
+
+        const data = await response.json();
+        if (data.status === 'success') {
+            document.getElementById('relationship').value = data.relationship;
+            document.getElementById('schedule_id').value = data.schedule_id;
+            document.getElementById('user_id').value = data.user_id;
+        }
+    });
+
+    async function submitForm() {
+        const relationship = document.getElementById('relationship').value;
+        const schedule_id = document.getElementById('schedule_id').value;
+        const user_id = document.getElementById('user_id').value;
+
+        const response = await fetch('/edit/appointment/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ appointment_id: appointmentId, relationship, schedule_id, user_id })
+        });
+
+        const result = await response.json();
+        alert(result.message);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [key, value] = cookie.trim().split('=');
+                if (key === name) {
+                    cookieValue = decodeURIComponent(value);
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function goToHomepage() {
+        window.location.href = "{% url 'homepage' %}";
+    }
+
+    function goToViewAppointments() {
+        window.location.href = "{% url 'view_appointments' %}";
+    }
+</script>
+</body>
+</html>

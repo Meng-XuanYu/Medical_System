@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>修改医师信息</title>
+</head>
+<body>
+<button type="button" onclick="goToHomepage()">回到主页</button>
+<button type="button" onclick="goToViewDoctors()">回到医师信息</button>
+<h2>修改医师信息</h2>
+<form id="edit-doctor-form">
+    <label for="name">姓名:</label>
+    <input type="text" id="name" name="name"><br>
+    <label for="gender">性别:</label>
+    <input type="text" id="gender" name="gender"><br>
+    <label for="title">职称:</label>
+    <input type="text" id="title" name="title"><br>
+    <label for="image_id">图片:</label>
+    <input type="text" id="image_id" name="image_id"><br>
+    <label for="introduction">简介:</label>
+    <textarea id="introduction" name="introduction"></textarea><br>
+    <button type="button" onclick="submitForm()">保存修改</button>
+</form>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const doctorId = urlParams.get('doctor_id');
+
+    document.addEventListener("DOMContentLoaded", async function() {
+            // 获取医师信息并填充表单
+            const response = await fetch(`/view/doctor/?doctor_id=${doctorId}`, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                document.getElementById('name').value = data.name;
+                document.getElementById('gender').value = data.gender;
+                document.getElementById('title').value = data.title;
+                document.getElementById('introduction').value = data.introduction;
+            } else {
+                alert(data.message);
+            }
+        });
+
+    async function submitForm() {
+        const name = document.getElementById('name').value;
+        const gender = document.getElementById('gender').value;
+        const title = document.getElementById('title').value;
+        const image_id = document.getElementById('image_id').value;
+        const introduction = document.getElementById('introduction').value;
+
+        const response = await fetch('/edit/doctor/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({doctor_id: doctorId, name, gender, title, image_id, introduction})
+        });
+
+        const result = await response.json();
+        alert(result.message);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function goToHomepage() {
+        window.location.href = "{% url 'homepage' %}";
+    }
+
+    function goToViewDoctors() {
+        window.location.href = "{% url 'view_doctors' %}";
+    }
+</script>
+</body>
+</html>
