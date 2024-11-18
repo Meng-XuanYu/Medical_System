@@ -3,11 +3,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import DataError
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth import logout as auth_logout
-from .auth_backends import *
+from django.core.exceptions import FieldError
+from MedicalSystem.auth_backends import *
 from MedicalSystem.view_funcs.base_user_funcs import *
+from MedicalSystem.view_funcs.menus import *
+from MedicalSystem.view_funcs.appointment_funcs import *
 import json
 
-from .view_funcs.base_user_funcs import fields_check
+from .view_funcs.base_user_funcs import *
+from .view_funcs.table_funcs import *
 
 home_url = "login/"
 
@@ -56,13 +60,27 @@ def view_doctors_page(request):
 def edit_doctor_page(request):
     return render(request, "edit_doctor.html")
 
+
 @require_GET
 def view_appointments_page(request):
     return render(request, "view_appointments.html")
 
+
 @require_GET
 def edit_appointment_page(request):
     return render(request, "edit_appointment.html")
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def menu_page(request):
+    user_type = request.GET.get('user_type')
+
+    # 根据 userType 返回相应菜单数据
+    if user_type in menus:
+        return JsonResponse(menus[user_type], safe=False)
+    else:
+        return JsonResponse({'status': 'error', 'message': '无效的 user_type 字段'}, status=400)
 
 
 @csrf_exempt  # 临时禁用 CSRF 检查
@@ -92,6 +110,8 @@ def register_user(request):
             phone=data['phone']
         )
         return JsonResponse({'status': 'success', 'message': '用户注册成功'})
+    except FieldError:
+        return JsonResponse({'status': 'error', 'message': '存在非法字段'}, status=400)
     except DataError:  # 捕获字段溢出或类型错误
         return JsonResponse({'status': 'error', 'message': '数据超出字段限制或无效'}, status=400)
     except json.JSONDecodeError:
@@ -128,6 +148,8 @@ def register_doctor(request):
             introduction=data['introduction']
         )
         return JsonResponse({'status': 'success', 'message': '医师注册成功'})
+    except FieldError:
+        return JsonResponse({'status': 'error', 'message': '存在非法字段'}, status=400)
     except DataError:  # 捕获字段溢出或类型错误
         return JsonResponse({'status': 'error', 'message': '数据超出字段限制或无效'}, status=400)
     except json.JSONDecodeError:
@@ -160,6 +182,8 @@ def register_admin(request):
             password=data['password'],
         )
         return JsonResponse({'status': 'success', 'message': '管理员注册成功'})
+    except FieldError:
+        return JsonResponse({'status': 'error', 'message': '存在非法字段'}, status=400)
     except DataError:  # 捕获字段溢出或类型错误
         return JsonResponse({'status': 'error', 'message': '数据超出字段限制或无效'}, status=400)
     except json.JSONDecodeError:
@@ -177,11 +201,11 @@ def login(request):
         data = json.loads(request.body)  # 从请求体解析 JSON 数据
 
         match data['user_type']:
-            case 'S' | 'T':
+            case 's' | 't':
                 return login_user(request, data)
-            case 'D':
+            case 'd':
                 return login_doctor(request, data)
-            case 'A':
+            case 'a':
                 return login_admin(request, data)
             case _:
                 return JsonResponse({'status': 'error', 'message': '无效的 user_type 字段'}, status=400)
@@ -203,129 +227,275 @@ def logout(request):
 
 
 @csrf_exempt  # 临时禁用 CSRF 检查
-@require_GET
-def view_doctor(request):
+@require_POST
+def get_all_record(request, model_name):
     # 确保当前用户已登录，并且用户类型是 Admin
     if not is_admin(request.user):
         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
 
-    doctor_id = request.GET.get('doctor_id')
-    if not doctor_id:
-        return JsonResponse({'status': 'error', 'message': '缺少医工号'}, status=400)
+    model_class = MODEL_MAP.get(model_name)
+    if not model_class:
+        return JsonResponse({'status': 'error', 'message': '无效的表名'}, status=400)
 
-    try:
-        doctor = Doctor.objects.get(doctor_id=doctor_id)
-        data = doctor.get_view_dic()
-        data['status'] = 'success'
-        return JsonResponse(data)
-    except Doctor.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': '医师不存在'}, status=404)
-
-
-@csrf_exempt  # 临时禁用 CSRF 检查
-@require_GET
-def view_doctors(request):
-    # 确保当前用户已登录，并且用户类型是 Admin
-    if not is_admin(request.user):
-        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-
-    doctors = Doctor.objects.all()
-    doctors_list = [doctor.get_view_dic() for doctor in doctors]
-    return JsonResponse({'status': 'success', 'doctors': doctors_list})
+    instances = get_instances(model_class)
+    return JsonResponse([instance_to_dict(instance) for instance in instances], safe=False)
 
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_POST
-def edit_doctor(request):
+def get_single_record(request, model_name):
     # 确保当前用户已登录，并且用户类型是 Admin
     if not is_admin(request.user):
         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
 
-    try:
-        data = json.loads(request.body)  # 从请求体解析 JSON 数据
-
-        check_return = fields_check(Doctor, data)
-        if check_return is not None:
-            return check_return
-
-        doctor_id = data.get('doctor_id')
-        doctor = Doctor.objects.get(doctor_id=doctor_id)
-
-        # 更新医师信息
-        doctor.name = data.get('name', doctor.name)
-        doctor.gender = data.get('gender', doctor.gender)
-        doctor.title = data.get('title', doctor.title)
-        doctor.image_id = data.get('image_id', doctor.image_id)
-        doctor.introduction = data.get('introduction', doctor.introduction)
-        doctor.save()
-
-        return JsonResponse({'status': 'success', 'message': '医师信息已更新'})
-    except Doctor.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': '医师不存在'}, status=404)
-    except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
-
-
-@csrf_exempt  # 临时禁用 CSRF 检查
-@require_GET
-def view_appointment(request):
-    # 确保当前用户已登录，并且用户类型是 Admin
-    if not is_admin(request.user):
-        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-
-    appointment_id = request.GET.get('appointment_id')
-    if not appointment_id:
-        return JsonResponse({'status': 'error', 'message': '缺少预约号'}, status=400)
-
-    try:
-        appointment = Appointment.objects.get(appointment_id=appointment_id)
-        data = appointment.get_view_dic()
-        data['status'] = 'success'
-        return JsonResponse(data)
-    except Appointment.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': '预约不存在'}, status=404)
-
-
-@csrf_exempt  # 临时禁用 CSRF 检查
-@require_GET
-def view_appointments(request):
-    # 确保当前用户已登录，并且用户类型是 Admin
-    if not is_admin(request.user):
-        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-
-    appointments = Appointment.objects.all()
-    appointments_list = [appointment.get_view_dic() for appointment in appointments]
-    return JsonResponse({'status': 'success', 'appointments': appointments_list})
-
-
-@csrf_exempt  # 临时禁用 CSRF 检查
-@require_POST
-def edit_appointment(request):
-    # 确保当前用户已登录，并且用户类型是 Admin
-    if not is_admin(request.user):
-        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+    model_class = MODEL_MAP.get(model_name)
+    if not model_class:
+        return JsonResponse({'status': 'error', 'message': '无效的表名'}, status=400)
 
     try:
         data = json.loads(request.body)
 
-        check_return = fields_check(Appointment, data)
+        filters = data.get('filters', {})
+        instance = get_instance(model_class, **filters)
+        return JsonResponse(instance_to_dict(instance), safe=False)
+    except model_class.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': f'{model_class.get_chinese_name()}不存在'}, status=400)
+    except model_class.MultipleObjectsReturned:
+        return JsonResponse({'status': 'error', 'message': f'{model_class.get_chinese_name()}不存在'}, status=400)
+    except FieldError:
+        return JsonResponse({'status': 'error', 'message': '存在非法字段'}, status=400)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def update_record(request, model_name):
+    # 确保当前用户已登录，并且用户类型是 Admin
+    if not is_admin(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    model_class = MODEL_MAP.get(model_name)
+    if not model_class:
+        return JsonResponse({'status': 'error', 'message': '无效的表名'}, status=400)
+
+    try:
+        data = json.loads(request.body)
+
+        check_return = fields_check(model_class, data, True)
         if check_return is not None:
             return check_return
 
-        appointment_id = data.get('appointment_id')
-        appointment = Appointment.objects.get(appointment_id=appointment_id)
-
-        # 更新预约信息
-        appointment.relationship = data.get('relationship', appointment.relationship)
-        appointment.schedule_id = data.get('schedule_id', appointment.schedule_id)
-        appointment.user_id = data.get('student_id', appointment.user_id)
-        appointment.save()
-
-        return JsonResponse({'status': 'success', 'message': '预约信息已更新'})
-    except Appointment.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': '预约不存在'}, status=404)
+        filters = data.get('filters', {})
+        updates = data.get('updates', {})
+        update_instance(model_class, filters, **updates)
+        return JsonResponse({'status': 'success', 'message': f'{model_class.get_chinese_name()}更新成功'})
+    except FieldError:
+        return JsonResponse({'status': 'error', 'message': '存在非法字段'}, status=400)
+    except DataError:  # 捕获字段溢出或类型错误
+        return JsonResponse({'status': 'error', 'message': '数据超出字段限制或无效'}, status=400)
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def add_record(request, model_name):
+    # 确保当前用户已登录，并且用户类型是 Admin
+    if not is_admin(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    model_class = MODEL_MAP.get(model_name)
+    if not model_class:
+        return JsonResponse({'status': 'error', 'message': '无效的表名'}, status=400)
+
+    try:
+        data = json.loads(request.body)
+
+        check_return = fields_check(model_class, data, True)
+        if check_return is not None:
+            return check_return
+
+        add_instance(model_class, data)
+        return JsonResponse({'status': 'success', 'message': f'{model_class.get_chinese_name()}添加成功'})
+    except FieldError:
+        return JsonResponse({'status': 'error', 'message': '存在非法字段'}, status=400)
+    except DataError:  # 捕获字段溢出或类型错误
+        return JsonResponse({'status': 'error', 'message': '数据超出字段限制或无效'}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def delete_record(request, model_name):
+    # 确保当前用户已登录，并且用户类型是 Admin
+    if not is_admin(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    model_class = MODEL_MAP.get(model_name)
+    if not model_class:
+        return JsonResponse({'status': 'error', 'message': '无效的表名'}, status=400)
+
+    try:
+        data = json.loads(request.body)
+
+        filters = data.get('filters', {})
+        delete_instance(model_class, **filters)
+        return JsonResponse({'success': '记录删除成功'})
+    except model_class.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': f'{model_class.get_chinese_name()}不存在'}, status=400)
+    except model_class.MultipleObjectsReturned:
+        return JsonResponse({'status': 'error', 'message': f'{model_class.get_chinese_name()}不存在'}, status=400)
+    except FieldError:
+        return JsonResponse({'status': 'error', 'message': '存在非法字段'}, status=400)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_appointment_info(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    departments = get_instances(Department)
+
+    # 构建最终的 JSON 数据结构
+    department_data = []
+    for department in departments:
+        department_info = {
+            'department_id': department.department_id,
+            'department_name': department.department_name,
+            'doctors': get_schedules_by_department(department)
+        }
+        department_data.append(department_info)
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': department_data}, safe=False)
+
+
+# @csrf_exempt  # 临时禁用 CSRF 检查
+# @require_GET
+# def view_doctor(request):
+#     # 确保当前用户已登录，并且用户类型是 Admin
+#     if not is_admin(request.user):
+#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+#
+#     doctor_id = request.GET.get('doctor_id')
+#     if not doctor_id:
+#         return JsonResponse({'status': 'error', 'message': '缺少医工号'}, status=400)
+#
+#     try:
+#         doctor = Doctor.objects.get(doctor_id=doctor_id)
+#         data = doctor.get_view_dic()
+#         data['status'] = 'success'
+#         return JsonResponse(data)
+#     except Doctor.DoesNotExist:
+#         return JsonResponse({'status': 'error', 'message': '医师不存在'}, status=404)
+#
+#
+# @csrf_exempt  # 临时禁用 CSRF 检查
+# @require_GET
+# def view_doctors(request):
+#     # 确保当前用户已登录，并且用户类型是 Admin
+#     if not is_admin(request.user):
+#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+#
+#     doctors = Doctor.objects.all()
+#     doctors_list = [doctor.get_view_dic() for doctor in doctors]
+#     return JsonResponse({'status': 'success', 'doctors': doctors_list})
+#
+#
+# @csrf_exempt  # 临时禁用 CSRF 检查
+# @require_POST
+# def edit_doctor(request):
+#     # 确保当前用户已登录，并且用户类型是 Admin
+#     if not is_admin(request.user):
+#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+#
+#     try:
+#         data = json.loads(request.body)  # 从请求体解析 JSON 数据
+#
+#         check_return = fields_check(Doctor, data)
+#         if check_return is not None:
+#             return check_return
+#
+#         doctor_id = data.get('doctor_id')
+#         doctor = Doctor.objects.get(doctor_id=doctor_id)
+#
+#         # 更新医师信息
+#         doctor.name = data.get('name', doctor.name)
+#         doctor.gender = data.get('gender', doctor.gender)
+#         doctor.title = data.get('title', doctor.title)
+#         doctor.image_id = data.get('image_id', doctor.image_id)
+#         doctor.introduction = data.get('introduction', doctor.introduction)
+#         doctor.save()
+#
+#         return JsonResponse({'status': 'success', 'message': '医师信息已更新'})
+#     except Doctor.DoesNotExist:
+#         return JsonResponse({'status': 'error', 'message': '医师不存在'}, status=404)
+#     except json.JSONDecodeError:
+#         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+#
+#
+# @csrf_exempt  # 临时禁用 CSRF 检查
+# @require_GET
+# def view_appointment(request):
+#     # 确保当前用户已登录，并且用户类型是 Admin
+#     if not is_admin(request.user):
+#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+#
+#     appointment_id = request.GET.get('appointment_id')
+#     if not appointment_id:
+#         return JsonResponse({'status': 'error', 'message': '缺少预约号'}, status=400)
+#
+#     try:
+#         appointment = Appointment.objects.get(appointment_id=appointment_id)
+#         data = appointment.get_view_dic()
+#         data['status'] = 'success'
+#         return JsonResponse(data)
+#     except Appointment.DoesNotExist:
+#         return JsonResponse({'status': 'error', 'message': '预约不存在'}, status=404)
+#
+#
+# @csrf_exempt  # 临时禁用 CSRF 检查
+# @require_GET
+# def view_appointments(request):
+#     # 确保当前用户已登录，并且用户类型是 Admin
+#     if not is_admin(request.user):
+#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+#
+#     appointments = Appointment.objects.all()
+#     appointments_list = [appointment.get_view_dic() for appointment in appointments]
+#     return JsonResponse({'status': 'success', 'appointments': appointments_list})
+#
+#
+# @csrf_exempt  # 临时禁用 CSRF 检查
+# @require_POST
+# def edit_appointment(request):
+#     # 确保当前用户已登录，并且用户类型是 Admin
+#     if not is_admin(request.user):
+#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+#
+#     try:
+#         data = json.loads(request.body)
+#
+#         check_return = fields_check(Appointment, data)
+#         if check_return is not None:
+#             return check_return
+#
+#         appointment_id = data.get('appointment_id')
+#         appointment = Appointment.objects.get(appointment_id=appointment_id)
+#
+#         # 更新预约信息
+#         appointment.relationship = data.get('relationship', appointment.relationship)
+#         appointment.schedule_id = data.get('schedule_id', appointment.schedule_id)
+#         appointment.user_id = data.get('student_id', appointment.user_id)
+#         appointment.save()
+#
+#         return JsonResponse({'status': 'success', 'message': '预约信息已更新'})
+#     except Appointment.DoesNotExist:
+#         return JsonResponse({'status': 'error', 'message': '预约不存在'}, status=404)
+#     except json.JSONDecodeError:
+#         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
 
 
 # 测试用函数

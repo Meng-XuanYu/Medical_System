@@ -18,20 +18,22 @@ def is_admin(user):
     return user.is_authenticated and hasattr(user, 'admin_id')
 
 
-def fields_check(model_class, data, use_password=False):
-    # 获取必填字段及其长度限制
-    if use_password is False:
-        required_fields = model_class.get_required_fields()
+def fields_check(model_class, data, integrity_check=False):
+    # 检查必填字段
+    required_fields = model_class.get_required_fields()
+    if integrity_check is False:
+        for field, max_length in required_fields.items():
+            if field in data and data[field]:  # 字段存在且不为空
+                if max_length and len(data[field]) > max_length:
+                    return JsonResponse({'status': 'error', 'message': f'{field}字段长度不能超过{max_length}个字符'},
+                                        status=400)
     else:
-        required_fields = model_class.get_required_fields(use_password)
-
-    # 检查所有必填字段是否存在且不为空
-    for field, max_length in required_fields.items():
-        if field not in data or not data[field]:
-            return JsonResponse({'status': 'error', 'message': f'缺少必填字段：{field}'}, status=400)
-        if max_length and len(data[field]) > max_length:
-            return JsonResponse({'status': 'error', 'message': f'{field}字段长度不能超过{max_length}个字符'},
-                                status=400)
+        for field, max_length in required_fields.items():
+            if field not in data or not data[field]:
+                return JsonResponse({'status': 'error', 'message': f'缺少必填字段：{field}'}, status=400)
+            if max_length and len(data[field]) > max_length:
+                return JsonResponse({'status': 'error', 'message': f'{field}字段长度不能超过{max_length}个字符'},
+                                    status=400)
 
     # 检查可选字段
     optional_fields = model_class.get_optional_fields()
@@ -40,6 +42,12 @@ def fields_check(model_class, data, use_password=False):
             if max_length and len(data[field]) > max_length:
                 return JsonResponse({'status': 'error', 'message': f'{field}字段长度不能超过{max_length}个字符'},
                                     status=400)
+
+    # 检查不存在的字段
+    model_fields = {field.name for field in model_class.get_fields()}
+    for field, value in data.items():
+        if field not in model_fields:
+            return JsonResponse({'status': 'error', 'message': f'{field}字段不存在'}, status=400)
 
     return None
 

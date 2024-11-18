@@ -53,7 +53,7 @@ class UserManager(BaseUserManager):
 
 # 表 1: 用户数据元素表
 class User(BaseUser):
-    user_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 学工号：主键
+    user_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 学工号：主键
     password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空，128个字符用于加密后的存储
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
@@ -73,28 +73,21 @@ class User(BaseUser):
     objects = UserManager()
 
     @classmethod
-    def get_required_fields(cls, use_password=False):
-        if use_password:
-            return {
-                'user_id': 8,
-                'password': 128,
-                'name': 15,
-                'gender': 1,
-                'birth': None,  # 日期字段无需长度限制
-                'id_number': 18,
-                'user_type': 1,
-                'phone': 11
-            }
-        else:
-            return {
-                'user_id': 8,
-                'name': 15,
-                'gender': 1,
-                'birth': None,  # 日期字段无需长度限制
-                'id_number': 18,
-                'user_type': 1,
-                'phone': 11
-            }
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'user_id': 8,
+            'password': 128,
+            'name': 15,
+            'gender': 1,
+            'birth': None,  # 日期字段无需长度限制
+            'id_number': 18,
+            'user_type': 1,
+            'phone': 11
+        }
 
     @classmethod
     def get_optional_fields(cls):
@@ -103,6 +96,11 @@ class User(BaseUser):
     @classmethod
     def get_chinese_name(cls):
         return '用户'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def to_view_fields(self):
         return {
@@ -127,7 +125,7 @@ class User(BaseUser):
 
 # 表 2: 医师用户数据元素表
 class Doctor(BaseUser):
-    doctor_id = models.CharField(max_length=5, primary_key=True, unique=True)  # 医工号：主键
+    doctor_id = models.CharField(max_length=5, primary_key=True, unique=True, db_index=True)  # 医工号：主键
     password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空，128个字符用于加密后的存储
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
@@ -146,22 +144,18 @@ class Doctor(BaseUser):
     objects = UserManager()
 
     @classmethod
-    def get_required_fields(cls, use_password=False):
-        if use_password:
-            return {
-                'doctor_id': 5,
-                'password': 128,
-                'name': 15,
-                'gender': 1,
-                'title': 10
-            }
-        else:
-            return {
-                'doctor_id': 5,
-                'name': 15,
-                'gender': 1,
-                'title': 10
-            }
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'doctor_id': 5,
+            'password': 128,
+            'name': 15,
+            'gender': 1,
+            'title': 10
+        }
 
     @classmethod
     def get_optional_fields(cls):
@@ -173,6 +167,11 @@ class Doctor(BaseUser):
     @classmethod
     def get_chinese_name(cls):
         return '医师'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -195,7 +194,7 @@ class Doctor(BaseUser):
 
 # 表 3: 管理员数据元素表
 class Admin(BaseUser):
-    admin_id = models.CharField(max_length=3, primary_key=True, unique=True)  # 管理员号：主键
+    admin_id = models.CharField(max_length=3, primary_key=True, unique=True, db_index=True)  # 管理员号：主键
     password = models.CharField(max_length=128, null=False, blank=False)  # 密码：非空，128个字符用于加密后的存储
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
 
@@ -210,18 +209,16 @@ class Admin(BaseUser):
     objects = UserManager()
 
     @classmethod
-    def get_required_fields(cls, use_password=False):
-        if use_password:
-            return {
-                'admin_id': 3,
-                'password': 128,
-                'name': 15
-            }
-        else:
-            return {
-                'admin_id': 3,
-                'name': 15
-            }
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
+    def get_required_fields(cls):
+        return {
+            'admin_id': 3,
+            'password': 128,
+            'name': 15
+        }
 
     @classmethod
     def get_optional_fields(cls):
@@ -230,6 +227,11 @@ class Admin(BaseUser):
     @classmethod
     def get_chinese_name(cls):
         return '管理员'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def to_view_dict(self):
         return {
@@ -258,6 +260,10 @@ class FamilyMember(models.Model):
         ]
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'family_id': 2,
@@ -276,6 +282,11 @@ class FamilyMember(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '家属'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -303,6 +314,10 @@ class Department(models.Model):
     department_name = models.CharField(max_length=10, null=False, blank=False)  # 科室名称：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'department_id': 3,
@@ -316,6 +331,11 @@ class Department(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '科室'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -331,9 +351,19 @@ class Department(models.Model):
 # 表 6: 排班数据元素表
 class Schedule(models.Model):
     schedule_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 排班号：主键
-    doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 医工号：非空
-    department_id = models.CharField(max_length=3, null=False, blank=False)  # 科室号：非空
-    schedule_time = models.DateTimeField(null=False, blank=False)  # 排班时间：非空
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, to_field='doctor_id', db_index=True)  # 外键引用 Doctor
+    department = models.ForeignKey('Department', on_delete=models.CASCADE, to_field='department_id',
+                                   db_index=True)  # 外键引用 Department
+    schedule_time = models.CharField(max_length=6, null=False, blank=False)  # 排班时间：非空
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['department_id', 'doctor'])  # 复合索引
+        ]
+
+    @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
 
     @classmethod
     def get_required_fields(cls):
@@ -341,7 +371,7 @@ class Schedule(models.Model):
             'schedule_id': 8,
             'doctor_id': 5,
             'department_id': 3,
-            'schedule_time': None,  # 时间字段无需长度限制
+            'schedule_time': None,  # json字段无需长度限制
         }
 
     @classmethod
@@ -351,6 +381,25 @@ class Schedule(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '排班'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        if 'doctor_id' in data:
+            doctor_id = data.pop('doctor_id')
+            try:
+                doctor = Doctor.objects.get(doctor_id=doctor_id)
+                data['doctor'] = doctor  # 将 doctor_id 转为 doctor 对象
+            except Doctor.DoesNotExist:
+                raise ValueError(f"Doctor with id {doctor_id} does not exist")
+        if 'department_id' in data:
+            department_id = data.pop('department_id')
+            try:
+                department = Department.objects.get(department_id=department_id)
+                data['department'] = department  # 将 department_id 转为 department 对象
+            except Doctor.DoesNotExist:
+                raise ValueError(f"Department with id {department_id} does not exist")
+        return data
 
     def get_view_dic(self):
         return {
@@ -373,6 +422,10 @@ class Pharmacy(models.Model):
     pharmacy_name = models.CharField(max_length=10, null=False, blank=False)  # 药房名称：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'pharmacy_id': 2,
@@ -386,6 +439,11 @@ class Pharmacy(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '药房'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -405,6 +463,10 @@ class Drug(models.Model):
     price = models.FloatField(null=False, blank=False)  # 药品价格：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'drug_id': 9,
@@ -419,6 +481,11 @@ class Drug(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '药品'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -445,6 +512,10 @@ class DrugInventory(models.Model):
         ]
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'drug_id': 9,
@@ -459,6 +530,11 @@ class DrugInventory(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '药品库存'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -481,6 +557,10 @@ class ExaminationArrangement(models.Model):
     doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 负责医工号：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'examination_id': 8,
@@ -496,6 +576,11 @@ class ExaminationArrangement(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '体检安排'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -520,6 +605,10 @@ class ExaminationInfo(models.Model):
     user_id = models.CharField(max_length=8, null=False, blank=False)  # 学工号：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'exam_appointment_id': 8,
@@ -536,6 +625,11 @@ class ExaminationInfo(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '体检信息'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -560,6 +654,10 @@ class Appointment(models.Model):
     user_id = models.CharField(max_length=8, null=False, blank=False)  # 学工号：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'appointment_id': 8,
@@ -575,6 +673,11 @@ class Appointment(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '预约'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -605,6 +708,10 @@ class Diagnosis(models.Model):
     doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 医工号：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'diagnosis_id': 8,
@@ -626,6 +733,11 @@ class Diagnosis(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '诊断'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -664,6 +776,10 @@ class Prescription(models.Model):
     precautions = models.TextField(null=False, blank=False)  # 注意事项：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'prescription_id': 8,
@@ -681,6 +797,11 @@ class Prescription(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '处方'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -709,6 +830,10 @@ class Notification(models.Model):
     user_id = models.CharField(max_length=8, null=False, blank=False)  # 接收人学工号：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'notification_id': 8,
@@ -724,6 +849,11 @@ class Notification(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '通知'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -749,6 +879,10 @@ class Evaluation(models.Model):
     doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 被评价人医工号：非空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'evaluation_id': 8,
@@ -765,6 +899,11 @@ class Evaluation(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '评价'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
     def get_view_dic(self):
         return {
@@ -792,6 +931,10 @@ class Image(models.Model):
     drug_id = models.CharField(max_length=9, null=True, blank=True)  # 药品号：可空
 
     @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'image_id': 10,
@@ -810,6 +953,11 @@ class Image(models.Model):
     def get_chinese_name(cls):
         return '图片'
 
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
+
     def get_view_dic(self):
         return {
             'image_id': self.image_id,
@@ -822,6 +970,6 @@ class Image(models.Model):
     def update_view_fields(self, data):
         self.image_path = data.get('image_path', self.image_path)
         self.evaluation_id = data.get('evaluation_id', self.evaluation_id)
-        self.notification_id= data.get('notification_id', self.notification_id)
+        self.notification_id = data.get('notification_id', self.notification_id)
         self.drug_id = data.get('drug_id', self.drug_id)
         self.save()
