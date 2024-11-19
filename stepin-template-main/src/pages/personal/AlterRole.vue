@@ -3,12 +3,14 @@
   <div class="role-switch">
     <h1>角色切换</h1>
     <a-card>
-      <a-radio-group v-model="selectedRole" @change="handleRoleChange">
+
+      <a-radio-group>
         <a-radio-button
+            @click="handleRoleChange(family.relation)"
             v-for="family in familyMembers"
-            :value="family.family_id"
-            :key="family.family_id"
-            :style="{ color: family.relation === currentRelation ? 'blue' : '' }"
+            :key="family.relation"
+            :value="family.relation"
+            :style="{backgroundColor: family.relation === selectedRole ? '#1a9def' : '' }"
         >
           {{ family.relation }}（{{ family.name }}）
         </a-radio-button>
@@ -17,67 +19,38 @@
   </div>
 </template>
 
-<script setup>
-import { ref, reactive, onMounted } from 'vue';
-import axios from 'axios';
+<script setup lang="ts">
+import { ref, onMounted, watch } from 'vue';
 
-const user = reactive({
-  id: 'T1234567',
-  name: '本人'
-});
+interface FamilyMember {
+  family_id: string;
+  relation: string;
+  name: string;
+}
 
-const familyMembers = ref([]);
-const selectedRole = ref(user.id);
-const currentRelation = ref(localStorage.getItem('relation') || '本人');
+const familyMembers = ref<FamilyMember[]>([]);
+const selectedRole = ref<string>('本人'); // Initialize with type and default value
+
 
 function fetchFamilyMembers() {
-  // 模拟数据
   familyMembers.value = [
-    {
-      family_id: '0',
-      relation: '本人',
-      name: '张老师',
-    },
-    {
-      family_id: 'F01',
-      relation: '配偶',
-      name: '王女士',
-    },
-    {
-      family_id: 'F02',
-      relation: '子女',
-      name: '李小明',
-    },
+    { family_id: '0', relation: '本人', name: '张老师' },
+    { family_id: 'F01', relation: '配偶', name: '王女士' },
+    { family_id: 'F02', relation: '子女', name: '李小明' },
   ];
 
-  const storedRelation = localStorage.getItem('relation');
-
-  if (storedRelation) {
-    const family = familyMembers.value.find(f => f.relation === storedRelation);
-    if (family) {
-      selectedRole.value = family.family_id;
-    } else {
-      selectedRole.value = user.id;
-    }
-  } else {
-    selectedRole.value = user.id; // 默认选中本人
-  }
+  selectedRole.value = localStorage.getItem('relation') || '本人';
 }
 
-function handleRoleChange() {
-  const family = familyMembers.value.find(f => f.family_id === selectedRole.value);
-  if (family) {
-    currentRelation.value = family.relation;
-    localStorage.setItem('relation', family.relation);
-  } else {
-    currentRelation.value = '本人';
-    localStorage.setItem('relation', '本人');
-  }
+function handleRoleChange(family: string) {
+  localStorage.setItem('relation', family);
+  selectedRole.value = family;
+  console.log('selectedRole:', family);
 }
 
-onMounted(() => {
-  fetchFamilyMembers();
-});
+onMounted(fetchFamilyMembers);
+
+
 </script>
 
 <style scoped>
@@ -85,4 +58,3 @@ onMounted(() => {
   padding: 24px;
 }
 </style>
-

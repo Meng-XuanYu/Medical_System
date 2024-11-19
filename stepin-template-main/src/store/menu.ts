@@ -460,6 +460,7 @@ export const useMenuStore = defineStore('menu', () => {
           component: '@/pages/personal',
           renderMenu: true,
           parent: null,
+          cacheable: true,
         },
         {
           id: 318,
@@ -471,6 +472,7 @@ export const useMenuStore = defineStore('menu', () => {
           component: '@/pages/Teacher_FamilyManage.vue',
           renderMenu: true,
           parent: null,
+          cacheable: true,
         },
         {
           id: 4,
@@ -482,6 +484,7 @@ export const useMenuStore = defineStore('menu', () => {
           component: '@/pages/User_reserve.vue',
           renderMenu: true,
           parent: null,
+          cacheable: true,
         },
         {
           id: 13,
@@ -493,6 +496,7 @@ export const useMenuStore = defineStore('menu', () => {
           component: '@/pages/User_pay.vue',
           renderMenu: true,
           parent: null,
+          cacheable: true,
         },
         {
           id: 5,
@@ -504,6 +508,7 @@ export const useMenuStore = defineStore('menu', () => {
           component: '@/pages/User_commentOnDoctor.vue',
           renderMenu: true,
           parent: null,
+          cacheable: true,
         },
         {
           id: 11,
@@ -515,6 +520,7 @@ export const useMenuStore = defineStore('menu', () => {
           component: '@/pages/User_healthDocument.vue',
           renderMenu: true,
           parent: null,
+          cacheable: true,
         },
       ];
     }
