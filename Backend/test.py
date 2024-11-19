@@ -97,11 +97,11 @@ def test_doctor_login_and_logout():
 
 # Admin 注册、登录和退出的测试函数
 def test_admin_register():
-    url = f"{base_url}/api/admin/register/"
+    url = f"{base_url}/register/admin/"
     data = {
-        "admin_id": "001",
-        "password": "adminpassword",
-        "name": "Admin Zhang"
+        "admin_id": "1",
+        "password": "1",
+        "name": "1"
     }
     response = requests.post(url, json=data)
     print("管理员注册响应:", response.json())

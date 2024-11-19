@@ -247,7 +247,8 @@ class Admin(BaseUser):
 # 表 4: 家属数据元素表
 class FamilyMember(models.Model):
     family_id = models.CharField(max_length=2, null=False, blank=False)  # 家属号：主键
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=False, db_index=True)  # 外键引用 User
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
+                             db_index=True)  # 外键引用 User
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 关系：非空
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
@@ -361,8 +362,10 @@ class Department(models.Model):
 # 表 6: 排班数据元素表
 class Schedule(models.Model):
     schedule_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 排班号：主键
-    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, null=True, db_index=True)  # 外键引用 Doctor
-    department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, db_index=True)  # 外键引用 Department
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, to_field='doctor_id', null=True,
+                               db_index=True)  # 外键引用 Doctor
+    department = models.ForeignKey('Department', on_delete=models.CASCADE, to_field='department_id', null=True,
+                                   db_index=True)  # 外键引用 Department
     schedule_time = models.DateTimeField(max_length=6, null=False, blank=False)  # 排班时间：非空
 
     class Meta:
@@ -563,7 +566,8 @@ class ExaminationArrangement(models.Model):
     examination_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 体检号：主键
     examination = models.TextField(null=False, blank=False)  # 体检项目：非空
     examination_date = models.DateField(null=False, blank=False)  # 体检日期：非空
-    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, null=True, db_index=True)  # 外键引用 Doctor
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, to_field='doctor_id', null=True,
+                               db_index=True)  # 外键引用 Doctor
 
     @classmethod
     def get_fields(cls):
@@ -616,10 +620,12 @@ class ExaminationArrangement(models.Model):
 # 表 11: 体检信息数据元素表
 class ExaminationInfo(models.Model):
     exam_appointment_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 体检预约号：主键
-    examination_arrangement = models.ForeignKey(ExaminationArrangement, on_delete=models.CASCADE, null=True,
-                                                blank=False, db_index=True)  # 外键引用 ExaminationArrangement
+    examination_arrangement = models.ForeignKey(ExaminationArrangement, on_delete=models.CASCADE,
+                                                to_field='examination_id', null=True, blank=False,
+                                                db_index=True)  # 外键引用 ExaminationArrangement
     examination_result = models.TextField(null=True, blank=True)  # 体检结果：可空
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=False, db_index=True)  # 外键引用 User
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
+                             db_index=True)  # 外键引用 User
     state = models.CharField(max_length=8, null=True, blank=False)  # 体检状态：非空
 
     @classmethod
@@ -695,9 +701,10 @@ class ExaminationInfo(models.Model):
 class Appointment(models.Model):
     appointment_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 预约号：主键
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 患者与预约人关系：非空
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, null=True, blank=False,
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, to_field='schedule_id', null=True, blank=False,
                                  db_index=True)  # 外键引用 Schedule
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=False, db_index=True)  # 外键引用 User
+    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
+                             db_index=True)  # 外键引用 User
     state = models.CharField(max_length=8, null=True, blank=False)  # 体检状态：非空
 
     @classmethod
