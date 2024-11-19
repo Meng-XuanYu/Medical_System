@@ -23,7 +23,7 @@ from MedicalSystem import views as ms_views
 
 urlpatterns = [
     # path('', RedirectView.as_view(url='/homepage/', permanent=False)),
-    # path("admin/", admin.site.urls),
+    path("admin/", admin.site.urls),
     path('homepage/', ms_views.homepage, name='homepage'),
 
     # 页面函数
@@ -49,14 +49,28 @@ urlpatterns = [
     path('logout/', ms_views.logout),
 
     # 管理员函数
-    path('<str:model_name>/all', ms_views.get_all_record),
-    path('<str:model_name>/single', ms_views.get_single_record),
-    path('<str:model_name>/upgrade', ms_views.update_record),
-    path('<str:model_name>/add', ms_views.add_record),
-    path('<str:model_name>/delete', ms_views.delete_record),
+    path('<str:model_name>/all/', ms_views.get_all_record),
+    path('<str:model_name>/single/', ms_views.get_single_record),
+    path('<str:model_name>/upgrade/', ms_views.update_record),
+    path('<str:model_name>/add/', ms_views.add_record),
+    path('<str:model_name>/delete/', ms_views.delete_record),
 
     # 预约函数
-    path('user/appointment/info', ms_views.get_appointment_info),
+    path('appointment/info/', ms_views.get_appointment_info),
+    path('user/appointment/info/', ms_views.get_user_appointment_info),
+    path('user/appointment/reserve/', ms_views.appointment_reserve),
+    path('user/appointment/cancel/', ms_views.appointment_cancel),
+    path('examination/info/', ms_views.get_examination_info),
+    path('user/examination/info/', ms_views.get_user_examination_info),
+    path('user/examination/reserve/', ms_views.examination_reserve),
+    path('user/examination/cancel/', ms_views.examination_cancel),
+
+    # 家属管理
+    path('teacher/family_members/info/', ms_views.get_family_members),
+    # path('teacher/family_members/update/', ms_views.update_family_members),
+    # path('teacher/family_members/add/', ms_views.update_family_members),
+    # path('teacher/family_members/delete/', ms_views.update_family_members),
+
 
     # path("view/doctor/", ms_views.view_doctor),
     # path('view/doctors/', ms_views.view_doctors),

@@ -372,6 +372,299 @@ def get_appointment_info(request):
     return JsonResponse({'status': 'success', 'data': department_data}, safe=False)
 
 
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_user_appointment_info(request):
+    # 确保当前用户已登录
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取 relationship 参数
+    relationship = request.GET.get('relation')
+    if not relationship:
+        return JsonResponse({'status': 'error', 'message': '缺少 relation 参数'}, status=400)
+
+    # 查询当前用户和指定 relationship 的预约信息
+    appointments = Appointment.objects.filter(user=request.user, relationship=relationship).select_related(
+        'schedule__doctor')
+
+    # 构建返回的数据结构
+    appointment_data = []
+    for appointment in appointments:
+        schedule = appointment.schedule
+        doctor = schedule.doctor if schedule else None
+        appointment_info = {
+            'appointment_id': appointment.appointment_id,
+            'doctor_name': doctor.name if doctor else None,
+            'schedule_time': schedule.schedule_time if schedule else None,
+            'state': appointment.state
+        }
+        appointment_data.append(appointment_info)
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': appointment_data}, safe=False)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def appointment_reserve(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    try:
+        # 获取传入的参数
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+    schedule_id = data.get('schedule_id')
+    relationship = data.get('relationship')
+
+    if not schedule_id:
+        return JsonResponse({'status': 'error', 'message': '排班 ID 不能为空'}, status=400)
+    if not relationship:
+        return JsonResponse({'status': 'error', 'message': '与用户关系不能为空'}, status=400)
+
+    # 查询 Schedule 是否存在
+    try:
+        schedule = Schedule.objects.get(schedule_id=schedule_id)
+    except Schedule.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '无效的排班 ID'}, status=404)
+
+    # 生成新的 appointment_id
+    appointment_id = Appointment.generate_incremental_appointment_id()
+
+    # 创建新的预约记录
+    Appointment.objects.create(
+        appointment_id=appointment_id,
+        relationship=relationship,
+        schedule=schedule,
+        user=request.user,
+        state='未开始'  # 设置初始状态
+    )
+
+    return JsonResponse({'status': 'success', 'message': '预约成功'})
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def appointment_cancel(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    try:
+        # 获取请求体数据
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+    # 提取必要的字段
+    appointment_id = data.get('appointment_id')
+    relationship = data.get('relation')
+
+    if not appointment_id:
+        return JsonResponse({'status': 'error', 'message': '预约 ID 不能为空'}, status=400)
+    if not relationship:
+        return JsonResponse({'status': 'error', 'message': '与用户关系不能为空'}, status=400)
+
+    try:
+        # 查找 Appointment 记录
+        appointment = Appointment.objects.get(
+            appointment_id=appointment_id,
+            relationship=relationship,
+            user=request.user
+        )
+    except Appointment.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '未找到匹配的预约记录'}, status=404)
+
+    # 更新状态为 "已取消"
+    appointment.state = '已取消'
+    appointment.save()
+
+    return JsonResponse({'status': 'success', 'message': '预约已取消'})
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_examination_info(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取所有 ExaminationArrangement 实例
+    examination_arrangements = get_instances(ExaminationArrangement)
+
+    # 构建 JSON 数据结构
+    examination_data = []
+    for exam in examination_arrangements:
+        # 获取医生的信息
+        doctor = exam.doctor
+        doctor_info = {
+            'name': doctor.name,
+            'gender': doctor.gender,
+            'title': doctor.title,
+            'image_id': doctor.image_id
+        } if doctor else None
+
+        # 构建体检安排的信息
+        exam_info = {
+            'examination_id': exam.examination_id,
+            'examination': exam.examination,
+            'examination_date': exam.examination_date,
+            'doctor': doctor_info
+        }
+        examination_data.append(exam_info)
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': examination_data}, safe=False)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_user_examination_info(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 查询 ExaminationInfo 表中 user 为当前用户的记录
+    examination_info_list = ExaminationInfo.objects.filter(user=request.user)
+
+    # 构建 JSON 数据结构
+    examination_data = []
+    for exam_info in examination_info_list:
+        # 获取相关的 ExaminationArrangement 信息
+        arrangement = exam_info.examination_arrangement
+        if arrangement:
+            doctor = arrangement.doctor
+            # 构建医生的信息
+            doctor_info = {
+                'name': doctor.name if doctor else None
+            }
+
+            # 构建体检安排的信息
+            arrangement_info = {
+                'examination': arrangement.examination,
+                'examination_date': arrangement.examination_date,
+                'doctor': doctor_info
+            }
+        else:
+            arrangement_info = None
+
+        # 构建体检信息的数据
+        info = {
+            'exam_appointment_id': exam_info.exam_appointment_id,
+            'examination_arrangement': arrangement_info,
+            'examination_result': exam_info.examination_result,
+            'state': exam_info.state
+        }
+        examination_data.append(info)
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': examination_data}, safe=False)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def examination_reserve(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    try:
+        # 获取传入的参数
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+    examination_id = data.get('examination_id')
+
+    if not examination_id:
+        return JsonResponse({'status': 'error', 'message': '体检项目 ID 不能为空'}, status=400)
+
+    # 查询 ExaminationArrangement 是否存在
+    try:
+        arrangement = ExaminationArrangement.objects.get(examination_id=examination_id)
+    except ExaminationArrangement.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '无效的体检项目 ID'}, status=404)
+
+    # 生成唯一的 exam_appointment_id
+    exam_appointment_id = ExaminationInfo.generate_incremental_exam_appointment_id()
+
+    # 添加记录到 ExaminationInfo 表
+    ExaminationInfo.objects.create(
+        exam_appointment_id=exam_appointment_id,
+        examination_arrangement=arrangement,
+        examination_result=None,
+        user=request.user,
+        state="未开始"
+    )
+    return JsonResponse({'status': 'success', 'message': '预约成功'})
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def examination_cancel(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    try:
+        # 获取传入的参数
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+    exam_appointment_id = data.get('exam_appointment_id')
+
+    if not exam_appointment_id:
+        return JsonResponse({'status': 'error', 'message': '预约 ID 不能为空'}, status=400)
+
+    try:
+        # 查找对应的预约信息
+        examination_info = ExaminationInfo.objects.get(exam_appointment_id=exam_appointment_id)
+
+        # 检查当前用户是否与预约信息中的用户一致
+        if examination_info.user != request.user:
+            return JsonResponse({'status': 'error', 'message': '权限错误，无法取消他人预约'}, status=403)
+
+        # 更新预约状态为 "已取消"
+        examination_info.state = "已取消"
+        examination_info.save()
+
+        return JsonResponse({'status': 'success', 'message': '预约已取消'})
+
+    except ExaminationInfo.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '预约记录不存在'}, status=404)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_family_members(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_teacher(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 查询当前用户的所有家属信息
+    family_members = FamilyMember.objects.filter(user=request.user)
+
+    # 构建返回的 JSON 数据结构
+    family_data = [
+        {
+            'family_id': member.family_id,
+            'relationship': member.relationship,
+            'name': member.name,
+            'gender': member.gender,
+            'birth': member.birth.strftime('%Y-%m-%d'),
+            'id_number': member.id_number,
+        }
+        for member in family_members
+    ]
+
+    return JsonResponse({'status': 'success', 'data': family_data})
+
+
 # @csrf_exempt  # 临时禁用 CSRF 检查
 # @require_GET
 # def view_doctor(request):

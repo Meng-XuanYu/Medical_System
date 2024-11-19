@@ -246,8 +246,8 @@ class Admin(BaseUser):
 
 # 表 4: 家属数据元素表
 class FamilyMember(models.Model):
-    family_id = models.CharField(max_length=2)  # 家属号：主键
-    user_id = models.CharField(max_length=8)  # 学工号：主键
+    family_id = models.CharField(max_length=2, null=False, blank=False)  # 家属号：主键
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=False, db_index=True)  # 外键引用 User
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 关系：非空
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
@@ -256,7 +256,10 @@ class FamilyMember(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['family_id', 'user_id'], name='unique_family_teacher')
+            models.UniqueConstraint(fields=['family_id', 'user'], name='unique_family_teacher')
+        ]
+        indexes = [
+            models.Index(fields=['family_id', 'user']),
         ]
 
     @classmethod
@@ -286,6 +289,13 @@ class FamilyMember(models.Model):
     # 对于外键字段进行处理，将其转换为模型对象
     @classmethod
     def prepare_data(cls, data):
+        if 'user_id' in data:
+            user_id = data.pop('user_id')
+            try:
+                user = User.objects.get(user_id=user_id)
+                data['user'] = user  # 将 user_id 转为 user 对象
+            except User.DoesNotExist:
+                raise ValueError(f"Doctor with id {user_id} does not exist")
         return data
 
     def get_view_dic(self):
@@ -310,7 +320,7 @@ class FamilyMember(models.Model):
 
 # 表 5: 科室数据元素表
 class Department(models.Model):
-    department_id = models.CharField(max_length=3, primary_key=True, unique=True)  # 科室号：主键
+    department_id = models.CharField(max_length=3, primary_key=True, unique=True, db_index=True)  # 科室号：主键
     department_name = models.CharField(max_length=10, null=False, blank=False)  # 科室名称：非空
 
     @classmethod
@@ -351,10 +361,9 @@ class Department(models.Model):
 # 表 6: 排班数据元素表
 class Schedule(models.Model):
     schedule_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 排班号：主键
-    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, to_field='doctor_id', db_index=True)  # 外键引用 Doctor
-    department = models.ForeignKey('Department', on_delete=models.CASCADE, to_field='department_id',
-                                   db_index=True)  # 外键引用 Department
-    schedule_time = models.CharField(max_length=6, null=False, blank=False)  # 排班时间：非空
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, null=True, db_index=True)  # 外键引用 Doctor
+    department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True, db_index=True)  # 外键引用 Department
+    schedule_time = models.DateTimeField(max_length=6, null=False, blank=False)  # 排班时间：非空
 
     class Meta:
         indexes = [
@@ -371,7 +380,7 @@ class Schedule(models.Model):
             'schedule_id': 8,
             'doctor_id': 5,
             'department_id': 3,
-            'schedule_time': None,  # json字段无需长度限制
+            'schedule_time': None,  # 时间字段无需长度限制
         }
 
     @classmethod
@@ -554,7 +563,7 @@ class ExaminationArrangement(models.Model):
     examination_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 体检号：主键
     examination = models.TextField(null=False, blank=False)  # 体检项目：非空
     examination_date = models.DateField(null=False, blank=False)  # 体检日期：非空
-    doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 负责医工号：非空
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, null=True, db_index=True)  # 外键引用 Doctor
 
     @classmethod
     def get_fields(cls):
@@ -580,6 +589,13 @@ class ExaminationArrangement(models.Model):
     # 对于外键字段进行处理，将其转换为模型对象
     @classmethod
     def prepare_data(cls, data):
+        if 'doctor_id' in data:
+            doctor_id = data.pop('doctor_id')
+            try:
+                doctor = Doctor.objects.get(doctor_id=doctor_id)
+                data['doctor'] = doctor  # 将 doctor_id 转为 doctor 对象
+            except Doctor.DoesNotExist:
+                raise ValueError(f"Doctor with id {doctor_id} does not exist")
         return data
 
     def get_view_dic(self):
@@ -599,10 +615,12 @@ class ExaminationArrangement(models.Model):
 
 # 表 11: 体检信息数据元素表
 class ExaminationInfo(models.Model):
-    exam_appointment_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 体检预约号：主键
-    examination_id = models.CharField(max_length=8, null=False, blank=False)  # 体检号：非空
+    exam_appointment_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 体检预约号：主键
+    examination_arrangement = models.ForeignKey(ExaminationArrangement, on_delete=models.CASCADE, null=True,
+                                                blank=False, db_index=True)  # 外键引用 ExaminationArrangement
     examination_result = models.TextField(null=True, blank=True)  # 体检结果：可空
-    user_id = models.CharField(max_length=8, null=False, blank=False)  # 学工号：非空
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=False, db_index=True)  # 外键引用 User
+    state = models.CharField(max_length=8, null=True, blank=False)  # 体检状态：非空
 
     @classmethod
     def get_fields(cls):
@@ -613,7 +631,8 @@ class ExaminationInfo(models.Model):
         return {
             'exam_appointment_id': 8,
             'examination_id': 8,
-            'user_id': 8
+            'user_id': 8,
+            'state': 8
         }
 
     @classmethod
@@ -629,7 +648,33 @@ class ExaminationInfo(models.Model):
     # 对于外键字段进行处理，将其转换为模型对象
     @classmethod
     def prepare_data(cls, data):
+        if 'user_id' in data:
+            user_id = data.pop('user_id')
+            try:
+                user = User.objects.get(user_id=user_id)
+                data['user'] = user  # 将 user_id 转为 user 对象
+            except User.DoesNotExist:
+                raise ValueError(f"Doctor with id {user_id} does not exist")
+        if 'examination_id' in data:
+            examination_id = data.pop('examination_id')
+            try:
+                examination_arrangement = ExaminationArrangement.objects.get(examination_id=examination_id)
+                data['examination_arrangement'] = examination_arrangement
+                # 将 examination_id 转为 examination_arrangement 对象
+            except ExaminationArrangement.DoesNotExist:
+                raise ValueError(f"Doctor with id {examination_id} does not exist")
         return data
+
+    # 生成唯一的递增体检预约号，从 1 开始。如果已存在，则跳到下一个可用的数字
+    @classmethod
+    def generate_incremental_exam_appointment_id(cls):
+        # 获取现有的最大 appointment_id
+        last_examination_info = cls.objects.order_by('-exam_appointment_id').first()
+        if last_examination_info and last_examination_info.exam_appointment_id.isdigit():
+            next_id = int(last_examination_info.appointment_id) + 1
+        else:
+            next_id = 1
+        return str(next_id).zfill(8)  # 补齐 8 位
 
     def get_view_dic(self):
         return {
@@ -650,8 +695,10 @@ class ExaminationInfo(models.Model):
 class Appointment(models.Model):
     appointment_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 预约号：主键
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 患者与预约人关系：非空
-    schedule_id = models.CharField(max_length=8, null=False, blank=False)  # 排班号：非空
-    user_id = models.CharField(max_length=8, null=False, blank=False)  # 学工号：非空
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, null=True, blank=False,
+                                 db_index=True)  # 外键引用 Schedule
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=False, db_index=True)  # 外键引用 User
+    state = models.CharField(max_length=8, null=True, blank=False)  # 体检状态：非空
 
     @classmethod
     def get_fields(cls):
@@ -677,7 +724,33 @@ class Appointment(models.Model):
     # 对于外键字段进行处理，将其转换为模型对象
     @classmethod
     def prepare_data(cls, data):
+        if 'user_id' in data:
+            user_id = data.pop('user_id')
+            try:
+                user = User.objects.get(user_id=user_id)
+                data['user'] = user  # 将 user_id 转为 user 对象
+            except User.DoesNotExist:
+                raise ValueError(f"Doctor with id {user_id} does not exist")
+        if 'schedule_id' in data:
+            schedule_id = data.pop('schedule_id')
+            try:
+                schedule = Schedule.objects.get(schedule_id=schedule_id)
+                data['schedule'] = schedule
+                # 将 schedule_id 转为 schedule 对象
+            except Schedule.DoesNotExist:
+                raise ValueError(f"Doctor with id {schedule_id} does not exist")
         return data
+
+    # 生成唯一的递增预约号，从 1 开始。如果已存在，则跳到下一个可用的数字
+    @classmethod
+    def generate_incremental_appointment_id(cls):
+        # 获取现有的最大 appointment_id
+        last_appointment = cls.objects.order_by('-appointment_id').first()
+        if last_appointment and last_appointment.appointment_id.isdigit():
+            next_id = int(last_appointment.appointment_id) + 1
+        else:
+            next_id = 1
+        return str(next_id).zfill(8)  # 补齐 8 位
 
     def get_view_dic(self):
         return {

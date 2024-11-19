@@ -7,7 +7,11 @@ def is_logged(user):
 
 
 def is_user(user):
-    return user.is_authenticated and hasattr(user, 'id')
+    return user.is_authenticated and hasattr(user, 'user_id')
+
+
+def is_teacher(user):
+    return user.is_authenticated and hasattr(user, 'user_id') and getattr(user, 'user_type') == 't'
 
 
 def is_doctor(user):

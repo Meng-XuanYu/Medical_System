@@ -22,8 +22,8 @@ class AdminAdmin(admin.ModelAdmin):
 
 @admin.register(FamilyMember)
 class FamilyMemberAdmin(admin.ModelAdmin):
-    list_display = ('family_id', 'user_id', 'relationship', 'name', 'gender', 'birth', 'id_number')
-    search_fields = ('family_id', 'user_id', 'name')
+    list_display = ('family_id', 'user', 'relationship', 'name', 'gender', 'birth', 'id_number')
+    search_fields = ('family_id', 'user', 'name')
 
 
 @admin.register(Department)
@@ -34,7 +34,7 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ('schedule_id', 'doctor_id', 'department_id', 'schedule_time')
+    list_display = ('schedule_id', 'doctor', 'department', 'schedule_time')
     search_fields = ('schedule_id',)
 
 
@@ -58,19 +58,19 @@ class DrugInventoryAdmin(admin.ModelAdmin):
 
 @admin.register(ExaminationArrangement)
 class ExaminationArrangementAdmin(admin.ModelAdmin):
-    list_display = ('examination_id', 'examination_date', 'doctor_id')
+    list_display = ('examination_id', 'examination_date', 'doctor')
     search_fields = ('examination_id',)
 
 
 @admin.register(ExaminationInfo)
 class ExaminationInfoAdmin(admin.ModelAdmin):
-    list_display = ('exam_appointment_id', 'examination_id', 'examination_result', 'user_id')
+    list_display = ('exam_appointment_id', 'examination_arrangement', 'examination_result', 'user')
     search_fields = ('exam_appointment_id',)
 
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ('appointment_id', 'relationship', 'schedule_id', 'user_id')
+    list_display = ('appointment_id', 'relationship', 'schedule', 'user')
     search_fields = ('appointment_id',)
 
 
