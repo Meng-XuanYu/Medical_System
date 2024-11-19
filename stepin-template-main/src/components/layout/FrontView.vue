@@ -135,7 +135,7 @@
   }
 
   .front-view {
-    background: repeating-linear-gradient(45deg, #2f2fea, red);
+    background: linear-gradient(45deg, #003f8c, #4896ff);
     background-size: 200% 200%;
     animation: ripple-animation 10s ease infinite;
 

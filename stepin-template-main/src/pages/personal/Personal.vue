@@ -1,6 +1,7 @@
 <script lang="ts" setup>
   import { ref } from 'vue';
   import ProfileInfo from './ProfileInfo.vue';
+  import AlterRole from "@/pages/personal/AlterRole.vue";
   const select = ref('overview');
 </script>
 <template>
@@ -26,10 +27,10 @@
         </a-radio-group>
       </div>
     </div>
-    <div class="mt-24 flex justify-evenly">
+    <div class="mypersonal">
 
       <ProfileInfo class="flex-1 ml-lg" />
-
+      <AlterRole />
     </div>
     <a-divider class="my-10" />
 
@@ -59,5 +60,11 @@
         }
       }
     }
+  }
+  .mypersonal {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
   }
 </style>

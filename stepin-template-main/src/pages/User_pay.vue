@@ -23,15 +23,16 @@
         <div class="payment-methods" v-if="!showQRCode">
           <a-button type="default" @click="handlePayment('wechat')" class="paybutton">
             <img src="@/assets/wechatpay.png" alt="微信支付" width="300"  />
+
           </a-button>
           <a-button type="default" @click="handlePayment('alipay')" class="paybutton">
             <img src="@/assets/alipay.png" alt="支付宝支付" width="300" height="140"/>
           </a-button>
         </div>
         <div v-if="showQRCode" class="qr-code">
-          <p>请使用手机扫码完成支付</p>
-          <img src="@/assets/qr_code_placeholder.png" alt="二维码" width="200" />
-          <p v-if="remainingTime > 0">支付剩余时间：{{ remainingTime }} 秒</p>
+          <p class="mysentence">请使用手机扫码完成支付</p>
+          <img src="@/assets/已支付999元！.png" alt="二维码" width="200" />
+          <p v-if="remainingTime > 0" class="mysentence">支付剩余时间：{{ remainingTime }} 秒</p>
           <p v-else>超时</p>
         </div>
       </div>
@@ -127,7 +128,6 @@ function handlePayment() {
   showQRCode.value = true;
   remainingTime.value = 300;
 
-
     // 开始倒计时
     startCountdown();
     // 检查支付状态
@@ -141,6 +141,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.mysentence{
+  font-size: 25px;
+  font-weight: bold;
+  margin-top: 30px;
+}
 .payment-page {
 
 

@@ -50,8 +50,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import axios from 'axios';
+import { ref, onMounted } from 'vue';
+import http from "@/store/http.js";
+
 
 const user = {
   id: 'S1234567',
@@ -127,19 +128,12 @@ function fetchMedicalRecords() {
 }
 
 function fetchAppointments() {
-  // axios.get(`/api/appointments/history?user_id=${user.id}`).then(response => {
-  //   appointments.value = response.data;
-  // });
+  http.request('/user/appointment/info/','get').then(response => {
+    appointments.value = response.data;
+  });
 
   // 模拟数据
-  appointments.value = [
-    {
-      appointment_id: 'A002',
-      date: '2023-06-10',
-      doctor_name: '王医生',
-      department_name: '内科',
-    },
-  ];
+
 }
 
 function fetchPrescriptions() {

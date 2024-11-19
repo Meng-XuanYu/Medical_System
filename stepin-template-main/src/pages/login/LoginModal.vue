@@ -7,7 +7,6 @@
     :footer="null"
     :body-style="{ padding: 0 }"
   >
-    <login-box />
   </a-modal>
 </template>
 <script lang="ts" setup>

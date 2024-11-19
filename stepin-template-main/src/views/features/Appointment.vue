@@ -77,28 +77,3 @@
   </div>
 </template>
 
-
-<style>
-.feature-detail {
-  max-width: 800px;
-  margin: 0 auto;
-  color: #333;
-  background-color: #e8c9e5;
-  border-radius: 10px;
-}
-
-.feature-detail h1,
-.feature-detail h2 {
-  color: #c40bd9; /* 主色调 */
-}
-
-.feature-detail p,
-.feature-detail li {
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-}
-
-.feature-detail strong {
-  font-weight: bold;
-}
-</style>

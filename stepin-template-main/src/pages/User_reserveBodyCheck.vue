@@ -80,7 +80,7 @@ function isFutureDate(date) {
 }
 
 function fetchExaminations() {
-  http.request('/user/examination/all', 'POST_JSON').then(response => {
+  http.request('/examination/info/', 'get').then(response => {
     examinations.value = response.data.map(item => {
       item.isReserved = false;
       reservations.value.forEach(reservation => {
@@ -94,14 +94,14 @@ function fetchExaminations() {
 }
 
 function fetchReservations() {
-  http.request(`/user/examinationInfo/all`, 'POST_JSON', { user_id: user_id }).then(response => {
+  http.request(`/user/examination/info/`, 'get' ).then(response => {
     reservations.value = response.data;
     fetchExaminations();
   });
 }
 
 function reserveExamination(record) {
-  http.request('/user/examination/reserve', 'POST_JSON', {
+  http.request('/user/examination/reserve/', 'POST_JSON', {
     user_id: user_id,
     examination_id: record.examination_id,
   }).then(() => {
@@ -113,7 +113,7 @@ function reserveExamination(record) {
 }
 
 function cancelReservation(record) {
-  http.request('/user/examination/cancel', 'POST_JSON', {
+  http.request('/user/examination/cancel/', 'POST_JSON', {
     user_id: user_id,
     reservation_id: record.reservation_id,
   }).then(() => {
@@ -132,7 +132,7 @@ onMounted(() => {
 <style scoped>
 .examination-page {
   padding: 24px;
-  max-width: 800px;
+  min-width: 1190px;
   margin: 0 auto;
   font-family: 'Arial', sans-serif;
   background-color: #f9f9f9;
