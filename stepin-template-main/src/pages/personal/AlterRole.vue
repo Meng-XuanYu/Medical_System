@@ -4,11 +4,13 @@
     <h1>角色切换</h1>
     <a-card>
       <a-radio-group v-model="selectedRole" @change="handleRoleChange">
-        <a-radio-button :value="user.id" key="self">
-          本人（{{ user.name }}）
-        </a-radio-button>
-        <a-radio-button v-for="family in familyMembers" :value="family.family_id" :key="family.family_id">
-          {{ family.relationship }}（{{ family.name }}）
+        <a-radio-button
+            v-for="family in familyMembers"
+            :value="family.family_id"
+            :key="family.family_id"
+            :style="{ color: family.relation === currentRelation ? 'blue' : '' }"
+        >
+          {{ family.relation }}（{{ family.name }}）
         </a-radio-button>
       </a-radio-group>
     </a-card>
@@ -26,31 +28,51 @@ const user = reactive({
 
 const familyMembers = ref([]);
 const selectedRole = ref(user.id);
+const currentRelation = ref(localStorage.getItem('relation') || '本人');
 
 function fetchFamilyMembers() {
-  // 调用后端API获取家属列表
-  // axios.get(`/api/familyMembers?teacher_id=${user.id}`).then(response => {
-  //   familyMembers.value = response.data;
-  // });
-
   // 模拟数据
   familyMembers.value = [
     {
+      family_id: '0',
+      relation: '本人',
+      name: '张老师',
+    },
+    {
       family_id: 'F01',
-      relationship: '配偶',
+      relation: '配偶',
       name: '王女士',
     },
     {
       family_id: 'F02',
-      relationship: '子女',
+      relation: '子女',
       name: '李小明',
     },
   ];
+
+  const storedRelation = localStorage.getItem('relation');
+
+  if (storedRelation) {
+    const family = familyMembers.value.find(f => f.relation === storedRelation);
+    if (family) {
+      selectedRole.value = family.family_id;
+    } else {
+      selectedRole.value = user.id;
+    }
+  } else {
+    selectedRole.value = user.id; // 默认选中本人
+  }
 }
 
 function handleRoleChange() {
-  // 更新当前身份，影响后续请求的参数
-  // 保存 selectedRole.value 到全局状态或本地存储
+  const family = familyMembers.value.find(f => f.family_id === selectedRole.value);
+  if (family) {
+    currentRelation.value = family.relation;
+    localStorage.setItem('relation', family.relation);
+  } else {
+    currentRelation.value = '本人';
+    localStorage.setItem('relation', '本人');
+  }
 }
 
 onMounted(() => {
@@ -63,3 +85,4 @@ onMounted(() => {
   padding: 24px;
 }
 </style>
+

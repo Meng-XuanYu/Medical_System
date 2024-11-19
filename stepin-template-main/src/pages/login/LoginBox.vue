@@ -98,7 +98,7 @@ const usernamePlaceholder = computed(() => {
   } else if (userRole.value === 'doctor') {
     return '请输入医生工号';
   } else {
-    return '请输入学号或工号';
+    return '请输入学号或工号，学号8位，工号6位';
   }
 });
 

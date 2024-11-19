@@ -16,7 +16,7 @@
           <a-input
               v-model:value="form.username"
               autocomplete="new-username"
-              placeholder="请输入学工号，学号默认8位，工号默认9位"
+              placeholder="请输入学号或工号，学号8位，工号6位"
               class="Register-input h-[40px]"
           />
         </a-form-item>
