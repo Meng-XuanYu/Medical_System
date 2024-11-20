@@ -382,7 +382,7 @@ def get_user_appointment_info(request):
     # 获取 relationship 参数
     relationship = request.GET.get('relation')
     if not relationship:
-        return JsonResponse({'status': 'error', 'message': '缺少 relation 参数'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'relation 不能为空'}, status=400)
 
     # 查询当前用户和指定 relationship 的预约信息
     appointments = Appointment.objects.filter(user=request.user, relationship=relationship).select_related(
@@ -419,25 +419,22 @@ def appointment_reserve(request):
         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
 
     schedule_id = data.get('schedule_id')
-    relationship = data.get('relationship')
+    relationship = data.get('relation')
 
     if not schedule_id:
-        return JsonResponse({'status': 'error', 'message': '排班 ID 不能为空'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'schedule_id 不能为空'}, status=400)
     if not relationship:
-        return JsonResponse({'status': 'error', 'message': '与用户关系不能为空'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'relation 不能为空'}, status=400)
 
     # 查询 Schedule 是否存在
     try:
         schedule = Schedule.objects.get(schedule_id=schedule_id)
     except Schedule.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': '无效的排班 ID'}, status=404)
-
-    # 生成新的 appointment_id
-    appointment_id = Appointment.generate_incremental_appointment_id()
+        return JsonResponse({'status': 'error', 'message': '无效的排班 schedule_id'}, status=404)
 
     # 创建新的预约记录
     Appointment.objects.create(
-        appointment_id=appointment_id,
+        appointment_id=Appointment.generate_incremental_appointment_id(),
         relationship=relationship,
         schedule=schedule,
         user=request.user,
@@ -465,9 +462,9 @@ def appointment_cancel(request):
     relationship = data.get('relation')
 
     if not appointment_id:
-        return JsonResponse({'status': 'error', 'message': '预约 ID 不能为空'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'appointment_id 不能为空'}, status=400)
     if not relationship:
-        return JsonResponse({'status': 'error', 'message': '与用户关系不能为空'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'relation 不能为空'}, status=400)
 
     try:
         # 查找 Appointment 记录
@@ -477,7 +474,7 @@ def appointment_cancel(request):
             user=request.user
         )
     except Appointment.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': '未找到匹配的预约记录'}, status=404)
+        return JsonResponse({'status': 'error', 'message': '无效的 appointment_id'}, status=404)
 
     # 更新状态为 "已取消"
     appointment.state = '已取消'
@@ -581,20 +578,17 @@ def examination_reserve(request):
     examination_id = data.get('examination_id')
 
     if not examination_id:
-        return JsonResponse({'status': 'error', 'message': '体检项目 ID 不能为空'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'examination_id 不能为空'}, status=400)
 
     # 查询 ExaminationArrangement 是否存在
     try:
         arrangement = ExaminationArrangement.objects.get(examination_id=examination_id)
     except ExaminationArrangement.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': '无效的体检项目 ID'}, status=404)
-
-    # 生成唯一的 exam_appointment_id
-    exam_appointment_id = ExaminationInfo.generate_incremental_exam_appointment_id()
+        return JsonResponse({'status': 'error', 'message': '无效的 examination_id'}, status=404)
 
     # 添加记录到 ExaminationInfo 表
     ExaminationInfo.objects.create(
-        exam_appointment_id=exam_appointment_id,
+        exam_appointment_id=ExaminationInfo.generate_incremental_exam_appointment_id(),
         examination_arrangement=arrangement,
         examination_result=None,
         user=request.user,
@@ -617,9 +611,8 @@ def examination_cancel(request):
         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
 
     exam_appointment_id = data.get('exam_appointment_id')
-
     if not exam_appointment_id:
-        return JsonResponse({'status': 'error', 'message': '预约 ID 不能为空'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'exam_appointment_id 不能为空'}, status=400)
 
     try:
         # 查找对应的预约信息
@@ -627,7 +620,7 @@ def examination_cancel(request):
 
         # 检查当前用户是否与预约信息中的用户一致
         if examination_info.user != request.user:
-            return JsonResponse({'status': 'error', 'message': '权限错误，无法取消他人预约'}, status=403)
+            return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
 
         # 更新预约状态为 "已取消"
         examination_info.state = "已取消"
@@ -642,7 +635,7 @@ def examination_cancel(request):
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_GET
 def get_family_members(request):
-    # 确保当前用户已登录，并且用户类型是 User
+    # 确保当前用户已登录，并且用户为教师
     if not is_teacher(request.user):
         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
 
@@ -663,6 +656,102 @@ def get_family_members(request):
     ]
 
     return JsonResponse({'status': 'success', 'data': family_data})
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def update_family_members(request):
+    # 确保当前用户已登录，并且用户为教师
+    if not is_teacher(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    try:
+        # 获取传入的参数
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+    family_id = data.get('family_id')
+    if not family_id:
+        return JsonResponse({'status': 'error', 'message': 'family_id 不能为空'}, status=400)
+
+    # 查找指定 family_id 且属于当前用户的家属记录
+    try:
+        family_member = FamilyMember.objects.get(user=request.user, family_id=family_id)
+    except FamilyMember.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '无效的 family_id'}, status=404)
+
+    check_return = fields_check(Admin, data, False)
+    if check_return is not None:
+        return check_return
+
+    # 更新字段
+    for field in FamilyMember.allowed_update_fields():
+        if field in data:
+            setattr(family_member, field, data[field])
+
+    # 保存更新
+    family_member.save()
+
+    return JsonResponse({'status': 'success', 'message': '家属信息更新成功'})
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def add_family_members(request):
+    # 确保当前用户已登录，并且用户为教师
+    if not is_teacher(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    try:
+        # 获取传入的参数
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+    fields_check(FamilyMember, data, True)
+
+    # 创建新的家属记录
+    FamilyMember.objects.create(
+        family_id=FamilyMember.generate_incremental_family_id(),
+        user=request.user,
+        relationship=data['relationship'],
+        name=data['name'],
+        gender=data['gender'],
+        birth=data['birth'],
+        id_number=data['id_number']
+    )
+
+    return JsonResponse({'status': 'success', 'message': '家属添加成功'})
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def delete_family_members(request):
+    # 确保当前用户已登录，并且用户为教师
+    if not is_teacher(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    try:
+        # 获取传入的参数
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+    family_id = data.get('family_id')
+    if not family_id:
+        return JsonResponse({'status': 'error', 'message': 'family_id 不能为空'}, status=400)
+
+    # 查找家属记录
+    try:
+        family_member = FamilyMember.objects.get(user=request.user, family_id=family_id)
+    except FamilyMember.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '无效的 family_id'}, status=404)
+
+    # 删除家属记录
+    family_member.delete()
+
+    return JsonResponse({'status': 'success', 'message': '家属删除成功'})
 
 
 # @csrf_exempt  # 临时禁用 CSRF 检查

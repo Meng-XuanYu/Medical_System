@@ -67,9 +67,9 @@ urlpatterns = [
 
     # 家属管理
     path('teacher/family_members/info/', ms_views.get_family_members),
-    # path('teacher/family_members/update/', ms_views.update_family_members),
-    # path('teacher/family_members/add/', ms_views.update_family_members),
-    # path('teacher/family_members/delete/', ms_views.update_family_members),
+    path('teacher/family_members/update/', ms_views.update_family_members),
+    path('teacher/family_members/add/', ms_views.add_family_members),
+    path('teacher/family_members/delete/', ms_views.delete_family_members),
 
 
     # path("view/doctor/", ms_views.view_doctor),

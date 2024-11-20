@@ -97,31 +97,6 @@ class User(BaseUser):
     def get_chinese_name(cls):
         return '用户'
 
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        return data
-
-    def to_view_fields(self):
-        return {
-            'user_id': self.user_id,
-            'name': self.name,
-            'gender': self.gender,
-            'birth': self.birth,
-            'id_number': self.id_number,
-            'user_type': self.user_type,
-            'phone': self.phone
-        }
-
-    def update_view_fields(self, data):
-        self.name = data.get('name', self.name)
-        self.gender = data.get('gender', self.gender)
-        self.birth = data.get('birth', self.birth)
-        self.id_number = data.get('id_number', self.id_number)
-        self.user_type = data.get('user_type', self.user_type)
-        self.phone = data.get('phone', self.phone)
-        self.save()
-
 
 # 表 2: 医师用户数据元素表
 class Doctor(BaseUser):
@@ -168,29 +143,6 @@ class Doctor(BaseUser):
     def get_chinese_name(cls):
         return '医师'
 
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        return data
-
-    def get_view_dic(self):
-        return {
-            'doctor_id': self.doctor_id,
-            'name': self.name,
-            'gender': self.gender,
-            'title': self.title,
-            'image_id': self.image_id,
-            'introduction': self.introduction
-        }
-
-    def update_view_fields(self, data):
-        self.name = data.get('name', self.name)
-        self.gender = data.get('gender', self.gender)
-        self.title = data.get('title', self.title)
-        self.image_id = data.get('image_id', self.image_id)
-        self.introduction = data.get('introduction', self.introduction)
-        self.save()
-
 
 # 表 3: 管理员数据元素表
 class Admin(BaseUser):
@@ -228,21 +180,6 @@ class Admin(BaseUser):
     def get_chinese_name(cls):
         return '管理员'
 
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        return data
-
-    def to_view_dict(self):
-        return {
-            'admin_id': self.admin_id,
-            'name': self.name
-        }
-
-    def update_view_fields(self, data):
-        self.name = data.get('name', self.name)
-        self.save()
-
 
 # 表 4: 家属数据元素表
 class FamilyMember(models.Model):
@@ -270,8 +207,6 @@ class FamilyMember(models.Model):
     @classmethod
     def get_required_fields(cls):
         return {
-            'family_id': 2,
-            'user_id': 8,
             'relationship': 10,
             'name': 15,
             'gender': 1,
@@ -284,39 +219,23 @@ class FamilyMember(models.Model):
         return {}
 
     @classmethod
+    def allowed_update_fields(cls):
+        return ['relationship', 'name', 'gender', 'birth', 'id_number']
+
+    @classmethod
     def get_chinese_name(cls):
         return '家属'
 
-    # 对于外键字段进行处理，将其转换为模型对象
+    # 生成唯一的递增家属号，从 1 开始。如果已存在，则跳到下一个可用的数字
     @classmethod
-    def prepare_data(cls, data):
-        if 'user_id' in data:
-            user_id = data.pop('user_id')
-            try:
-                user = User.objects.get(user_id=user_id)
-                data['user'] = user  # 将 user_id 转为 user 对象
-            except User.DoesNotExist:
-                raise ValueError(f"Doctor with id {user_id} does not exist")
-        return data
-
-    def get_view_dic(self):
-        return {
-            'family_id': self.family_id,
-            'user_id': self.user_id,
-            'relationship': self.relationship,
-            'name': self.name,
-            'gender': self.gender,
-            'birth': self.birth,
-            'id_number': self.id_number
-        }
-
-    def update_view_fields(self, data):
-        self.relationship = data.get('relationship', self.relationship)
-        self.name = data.get('name', self.name)
-        self.gender = data.get('gender', self.gender)
-        self.birth = data.get('birth', self.birth)
-        self.id_number = data.get('id_number', self.id_number)
-        self.save()
+    def generate_incremental_family_id(cls):
+        # 获取现有的最大 family_id
+        last_family_member_info = cls.objects.order_by('-family_id').first()
+        if last_family_member_info and last_family_member_info.family_id.isdigit():
+            next_id = int(last_family_member_info.family_id) + 1
+        else:
+            next_id = 1
+        return str(next_id).zfill(2)  # 补齐 2 位
 
 
 # 表 5: 科室数据元素表
@@ -342,21 +261,6 @@ class Department(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '科室'
-
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        return data
-
-    def get_view_dic(self):
-        return {
-            'department_id': self.department_id,
-            'department_name': self.department_name
-        }
-
-    def update_view_fields(self, data):
-        self.department_name = data.get('department_name', self.department_name)
-        self.save()
 
 
 # 表 6: 排班数据元素表
@@ -394,39 +298,6 @@ class Schedule(models.Model):
     def get_chinese_name(cls):
         return '排班'
 
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        if 'doctor_id' in data:
-            doctor_id = data.pop('doctor_id')
-            try:
-                doctor = Doctor.objects.get(doctor_id=doctor_id)
-                data['doctor'] = doctor  # 将 doctor_id 转为 doctor 对象
-            except Doctor.DoesNotExist:
-                raise ValueError(f"Doctor with id {doctor_id} does not exist")
-        if 'department_id' in data:
-            department_id = data.pop('department_id')
-            try:
-                department = Department.objects.get(department_id=department_id)
-                data['department'] = department  # 将 department_id 转为 department 对象
-            except Doctor.DoesNotExist:
-                raise ValueError(f"Department with id {department_id} does not exist")
-        return data
-
-    def get_view_dic(self):
-        return {
-            'schedule_id': self.schedule_id,
-            'doctor_id': self.doctor_id,
-            'department_id': self.department_id,
-            'schedule_time': self.schedule_time
-        }
-
-    def update_view_fields(self, data):
-        self.doctor_id = data.get('doctor_id', self.doctor_id)
-        self.department_id = data.get('department_id', self.department_id)
-        self.schedule_time = data.get('schedule_time', self.schedule_time)
-        self.save()
-
 
 # 表 7: 药房数据元素表
 class Pharmacy(models.Model):
@@ -451,21 +322,6 @@ class Pharmacy(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '药房'
-
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        return data
-
-    def get_view_dic(self):
-        return {
-            'pharmacy_id': self.pharmacy_id,
-            'pharmacy_name': self.pharmacy_name
-        }
-
-    def update_view_fields(self, data):
-        self.pharmacy_name = data.get('pharmacy_name', self.pharmacy_name)
-        self.save()
 
 
 # 表 8: 药品数据元素表
@@ -493,23 +349,6 @@ class Drug(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '药品'
-
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        return data
-
-    def get_view_dic(self):
-        return {
-            'drug_id': self.drug_id,
-            'drug_name': self.drug_name,
-            'price': self.price
-        }
-
-    def update_view_fields(self, data):
-        self.drug_name = data.get('drug_name', self.drug_name)
-        self.price = data.get('price', self.price)
-        self.save()
 
 
 # 表 9: 药品库存数据元素表
@@ -543,27 +382,10 @@ class DrugInventory(models.Model):
     def get_chinese_name(cls):
         return '药品库存'
 
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        return data
-
-    def get_view_dic(self):
-        return {
-            'drug_id': self.drug_id,
-            'drug_amount': self.drug_amount,
-            'pharmacy_id': self.pharmacy_id
-        }
-
-    def update_view_fields(self, data):
-        self.drug_amount = data.get('drug_amount', self.drug_amount)
-        self.pharmacy_id = data.get('pharmacy_id', self.pharmacy_id)
-        self.save()
-
 
 # 表 10: 体检安排元素表
 class ExaminationArrangement(models.Model):
-    examination_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 体检号：主键
+    examination_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 体检号：主键
     examination = models.TextField(null=False, blank=False)  # 体检项目：非空
     examination_date = models.DateField(null=False, blank=False)  # 体检日期：非空
     doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, to_field='doctor_id', null=True,
@@ -589,32 +411,6 @@ class ExaminationArrangement(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '体检安排'
-
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        if 'doctor_id' in data:
-            doctor_id = data.pop('doctor_id')
-            try:
-                doctor = Doctor.objects.get(doctor_id=doctor_id)
-                data['doctor'] = doctor  # 将 doctor_id 转为 doctor 对象
-            except Doctor.DoesNotExist:
-                raise ValueError(f"Doctor with id {doctor_id} does not exist")
-        return data
-
-    def get_view_dic(self):
-        return {
-            'examination_id': self.examination_id,
-            'examination': self.examination,
-            'examination_date': self.examination_date,
-            'doctor_id': self.doctor_id
-        }
-
-    def update_view_fields(self, data):
-        self.examination = data.get('examination', self.examination)
-        self.examination_date = data.get('examination_date', self.examination_date)
-        self.doctor_id = data.get('doctor_id', self.doctor_id)
-        self.save()
 
 
 # 表 11: 体检信息数据元素表
@@ -651,26 +447,6 @@ class ExaminationInfo(models.Model):
     def get_chinese_name(cls):
         return '体检信息'
 
-    # 对于外键字段进行处理，将其转换为模型对象
-    @classmethod
-    def prepare_data(cls, data):
-        if 'user_id' in data:
-            user_id = data.pop('user_id')
-            try:
-                user = User.objects.get(user_id=user_id)
-                data['user'] = user  # 将 user_id 转为 user 对象
-            except User.DoesNotExist:
-                raise ValueError(f"Doctor with id {user_id} does not exist")
-        if 'examination_id' in data:
-            examination_id = data.pop('examination_id')
-            try:
-                examination_arrangement = ExaminationArrangement.objects.get(examination_id=examination_id)
-                data['examination_arrangement'] = examination_arrangement
-                # 将 examination_id 转为 examination_arrangement 对象
-            except ExaminationArrangement.DoesNotExist:
-                raise ValueError(f"Doctor with id {examination_id} does not exist")
-        return data
-
     # 生成唯一的递增体检预约号，从 1 开始。如果已存在，则跳到下一个可用的数字
     @classmethod
     def generate_incremental_exam_appointment_id(cls):
@@ -699,13 +475,18 @@ class ExaminationInfo(models.Model):
 
 # 表 12: 预约数据元素表
 class Appointment(models.Model):
-    appointment_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 预约号：主键
+    appointment_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 预约号：主键
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 患者与预约人关系：非空
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, to_field='schedule_id', null=True, blank=False,
                                  db_index=True)  # 外键引用 Schedule
     user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
                              db_index=True)  # 外键引用 User
     state = models.CharField(max_length=8, null=True, blank=False)  # 体检状态：非空
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['appointment_id', 'relationship', 'user'])  # 复合索引
+        ]
 
     @classmethod
     def get_fields(cls):

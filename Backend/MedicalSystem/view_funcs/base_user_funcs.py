@@ -38,7 +38,6 @@ def fields_check(model_class, data, integrity_check=False):
             if max_length and len(data[field]) > max_length:
                 return JsonResponse({'status': 'error', 'message': f'{field}字段长度不能超过{max_length}个字符'},
                                     status=400)
-
     # 检查可选字段
     optional_fields = model_class.get_optional_fields()
     for field, max_length in optional_fields.items():
@@ -47,11 +46,11 @@ def fields_check(model_class, data, integrity_check=False):
                 return JsonResponse({'status': 'error', 'message': f'{field}字段长度不能超过{max_length}个字符'},
                                     status=400)
 
-    # 检查不存在的字段
-    model_fields = {field.name for field in model_class.get_fields()}
-    for field, value in data.items():
-        if field not in model_fields:
-            return JsonResponse({'status': 'error', 'message': f'{field}字段不存在'}, status=400)
+    # # 检查不存在的字段
+    # model_fields = {field.name for field in model_class.get_fields()}
+    # for field, value in data.items():
+    #     if field not in model_fields:
+    #         return JsonResponse({'status': 'error', 'message': f'{field}字段不存在'}, status=400)
 
     return None
 
