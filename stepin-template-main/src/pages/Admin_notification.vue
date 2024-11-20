@@ -110,7 +110,7 @@ const columns = [
 ];
 
 function fetchNotifications() {
-  http.request('/notification/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/notification/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     notifications.value = response.data;
   });
 }
@@ -137,7 +137,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/notification/update', 'POST_JSON', { ...currentNotification });
+      await http.request('/notification/update/', 'POST_JSON', { ...currentNotification });
       message.success('编辑通知成功');
     } finally {
       isModalVisible.value = false;
@@ -145,7 +145,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/notification/add', 'POST_JSON', { ...currentNotification });
+      await http.request('/notification/add/', 'POST_JSON', { ...currentNotification });
       message.success('新增通知成功');
     } finally {
       isModalVisible.value = false;
@@ -159,7 +159,7 @@ function handleCancel() {
 }
 
 function handleDelete(notification_id: any) {
-  http.request('/notification/delete', 'POST_JSON', { notification_id: notification_id });
+  http.request('/notification/delete/', 'POST_JSON', { notification_id: notification_id });
   message.success('删除通知成功');
   fetchNotifications();
 }

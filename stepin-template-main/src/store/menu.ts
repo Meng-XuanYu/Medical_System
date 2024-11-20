@@ -314,9 +314,9 @@ export const useMenuStore = defineStore('menu', () => {
       menuList.value = [
         {
           id: 3,
-          name: 'personal',
+          name: 'user_personal',
           title: '个人中心',
-          path: '/personal',
+          path: '/user_personal',
           icon: 'UserOutlined',  // 适合个人中心
           permission: null,
           component: '@/pages/personal',
@@ -325,9 +325,9 @@ export const useMenuStore = defineStore('menu', () => {
         },
         {
           id: 4,
-          name: 'reserve',
+          name: 'user_reserve',
           title: '预约挂号',
-          path: '/reserve',
+          path: '/user_reserve',
           icon: 'CalendarOutlined',  // 适合预约挂号
           permission: null,
           component: '@/pages/User_reserve.vue',
@@ -336,9 +336,9 @@ export const useMenuStore = defineStore('menu', () => {
         },
         {
           id: 13,
-          name: 'pay',
+          name: 'user_pay',
           title: '在线缴费',
-          path: '/pay',
+          path: '/user_pay',
           icon: 'CreditCardOutlined',  // 适合在线缴费
           permission: null,
           component: '@/pages/User_pay.vue',
@@ -349,7 +349,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 5,
           name: 'commentOnDoctor',
           title: '医师评价',
-          path: '/commentOnDoctor',
+          path: '/user_commentOnDoctor',
           icon: 'StarOutlined',  // 适合评价
           permission: null,
           component: '@/pages/User_commentOnDoctor',
@@ -360,7 +360,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 11,
           name: 'healthDocument',
           title: '健康档案',
-          path: '/healthDocument',
+          path: '/user_healthDocument',
           icon: 'FileTextOutlined',  // 适合健康档案
           permission: null,
           component: '@/pages/User_healthDocument.vue',
@@ -371,7 +371,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 12,
           name: 'reserveBodyCheck',
           title: '体检预约',
-          path: '/reserveBodyCheck',
+          path: '/user_reserveBodyCheck',
           icon: 'SolutionOutlined',  // 适合体检预约
           permission: null,
           component: '@/pages/User_reserveBodyCheck.vue',
@@ -380,12 +380,12 @@ export const useMenuStore = defineStore('menu', () => {
         },
       ];
     } else if (localStorage.getItem('usertype') === 'd') {
-      menuList.value=[
+      menuList.value = [
         {
           id: 44,
           name: 'doctor_1',
           title: '排班查询',
-          path: '/myarrange',
+          path: '/doctor_myarrange',
           icon: 'ScheduleOutlined',  // 适合排班查询
           permission: null,
           component: '@/pages/Doctor_MyArrange.vue',
@@ -396,7 +396,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 45,
           name: 'doctor_2',
           title: '预约信息',
-          path: '/myreserved',
+          path: '/doctor_myreserved',
           icon: 'AppstoreOutlined',  // 适合预约信息
           permission: null,
           component: '@/pages/Doctor_Reserved.vue',
@@ -407,7 +407,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 46,
           name: 'doctor_3',
           title: '我的评价',
-          path: '/mycomment',
+          path: '/doctor_mycomment',
           icon: 'CommentOutlined',  // 适合医师评价
           permission: null,
           component: '@/pages/Doctor_comment.vue',
@@ -418,7 +418,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 47,
           name: 'doctor_4',
           title: '处方开具',
-          path: '/makepre',
+          path: '/doctor_makepre',
           icon: 'FileDoneOutlined',  // 适合处方开具
           permission: null,
           component: '@/pages/Doctor_makePre.vue',
@@ -429,7 +429,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 48,
           name: 'doctor_5',
           title: '患者信息',
-          path: '/patient',
+          path: '/doctor_patient',
           icon: 'TeamOutlined',  // 适合患者信息
           permission: null,
           component: '@/pages/Doctor_patient.vue',
@@ -440,7 +440,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 49,
           name: 'doctor_6',
           title: '患者病历',
-          path: '/illhistory',
+          path: '/doctor_illhistory',
           icon: 'BookOutlined',  // 适合患者病历
           permission: null,
           component: '@/pages/Doctor_patientillhistory.vue',
@@ -454,7 +454,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 3,
           name: 'personal',
           title: '角色中心',
-          path: '/personal',
+          path: '/user_personal',
           icon: 'UserOutlined',
           permission: null,
           component: '@/pages/personal',
@@ -466,7 +466,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 318,
           name: 'family',
           title: '家属管理',
-          path: '/family',
+          path: '/teacher_family',
           icon: 'TeamOutlined',  // 适合家属管理
           permission: null,
           component: '@/pages/Teacher_FamilyManage.vue',
@@ -478,7 +478,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 4,
           name: 'reserve',
           title: '预约挂号',
-          path: '/reserve',
+          path: '/user_reserve',
           icon: 'CalendarOutlined',
           permission: null,
           component: '@/pages/User_reserve.vue',
@@ -490,7 +490,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 13,
           name: 'pay',
           title: '在线缴费',
-          path: '/pay',
+          path: '/user_pay',
           icon: 'CreditCardOutlined',
           permission: null,
           component: '@/pages/User_pay.vue',
@@ -502,7 +502,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 5,
           name: 'commentOnDoctor',
           title: '医师评价',
-          path: '/commentOnDoctor',
+          path: '/user_commentOnDoctor',
           icon: 'StarOutlined',
           permission: null,
           component: '@/pages/User_commentOnDoctor.vue',
@@ -514,7 +514,7 @@ export const useMenuStore = defineStore('menu', () => {
           id: 11,
           name: 'healthDocument',
           title: '健康档案',
-          path: '/healthDocument',
+          path: '/user_healthDocument',
           icon: 'FileTextOutlined',
           permission: null,
           component: '@/pages/User_healthDocument.vue',
@@ -526,8 +526,8 @@ export const useMenuStore = defineStore('menu', () => {
     }
     replaceRoutes(toRoutes(menuList.value), false);
     checkMenuPermission();
+    setPageLoading(false);
     return menuList.value;
-
   }
 
   return {

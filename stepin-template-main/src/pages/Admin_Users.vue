@@ -116,7 +116,7 @@ const columns = [
 ];
 
 function fetchUsers() {
-  http.request('/user/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/user/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     users.value = response.data;
   });
 }
@@ -138,7 +138,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/user/update', 'POST_JSON', { ...currentUser });
+      await http.request('/user/update/', 'POST_JSON', { ...currentUser });
       message.success('编辑用户信息成功');
     } finally {
       isModalVisible.value = false;
@@ -146,7 +146,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/user/add', 'POST_JSON', { ...currentUser });
+      await http.request('/user/add/', 'POST_JSON', { ...currentUser });
       message.success('新增用户信息成功');
     } finally {
       isModalVisible.value = false;
@@ -160,7 +160,7 @@ function handleCancel() {
 }
 
 function handleDelete(id: any) {
-  http.request('/user/delete', 'POST_JSON', { id });
+  http.request('/user/delete/', 'POST_JSON', { id });
   message.success('删除用户信息成功');
   fetchUsers();
 }

@@ -105,7 +105,7 @@ const columns = [
 ];
 
 function fetchDrugs() {
-  http.request('/drug/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/drug/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     drugs.value = response.data;
   });
 }
@@ -131,7 +131,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/drug/update', 'POST_JSON', { ...currentDrug });
+      await http.request('/drug/update/', 'POST_JSON', { ...currentDrug });
       message.success('编辑药品信息成功');
     } finally {
       isModalVisible.value = false;
@@ -139,7 +139,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/drug/add', 'POST_JSON', { ...currentDrug });
+      await http.request('/drug/add/', 'POST_JSON', { ...currentDrug });
       message.success('新增药品信息成功');
     } finally {
       isModalVisible.value = false;
@@ -153,7 +153,7 @@ function handleCancel() {
 }
 
 function handleDelete(drug_id: any) {
-  http.request('/drug/delete', 'POST_JSON', { drug_id });
+  http.request('/drug/delete/', 'POST_JSON', { drug_id });
   message.success('删除药品信息成功');
   fetchDrugs();
 }

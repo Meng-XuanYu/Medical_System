@@ -58,6 +58,7 @@ let countdownTimer = null;
 let paymentStatusTimer = null;
 
 const columns = [
+  {title: '支付凭证号', dataIndex: 'payment_id', key: 'payment_id', width: 150},
   { title: '项目', dataIndex: 'payment_name', key: 'payment_name', width: 150 },
   { title: '描述', dataIndex: 'payment_description', key: 'payment_description',width: 400 },
   { title: '金额', dataIndex: 'amount', key: 'amount', width: 150 },
@@ -74,9 +75,9 @@ function fetchPendingPayments() {
     pendingPayments.value = response.data;
   });*/
   pendingPayments.value = [
-    {  payment_name: '挂号费',      payment_description: '11月17日下午4点的预约',  amount: 10 },
-    { payment_name: '药费',       payment_description:'阿司匹林 ；两盒', amount: 40 },
-    {  payment_name: '药费',payment_description:'头孢克肟  一盒', amount: 30 },
+    {payment_id:'1',  payment_name: '挂号费',      payment_description: '11月17日下午4点的预约',  amount: 10 },
+    {payment_id:'2', payment_name: '药费',       payment_description:'阿司匹林 ；两盒', amount: 40 },
+    {payment_id:'3',  payment_name: '药费',payment_description:'头孢克肟  一盒', amount: 30 },
   ];
 }
 
@@ -120,7 +121,7 @@ function checkPaymentStatus() {
         fetchPendingPayments();
       }
     });
-  }, 2000);
+  }, 5000);
 }
 
 function handlePayment() {

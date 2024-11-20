@@ -118,7 +118,7 @@ const columns = [
 ];
 
 function fetchImages() {
-  http.request('/image/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/image/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     images.value = response.data;
   });
 }
@@ -146,7 +146,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/image/update', 'POST_JSON', { ...currentImage });
+      await http.request('/image/update/', 'POST_JSON', { ...currentImage });
       message.success('编辑图片成功');
     } finally {
       isModalVisible.value = false;
@@ -154,7 +154,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/image/add', 'POST_JSON', { ...currentImage });
+      await http.request('/image/add/', 'POST_JSON', { ...currentImage });
       message.success('新增图片成功');
     } finally {
       isModalVisible.value = false;
@@ -168,7 +168,7 @@ function handleCancel() {
 }
 
 function handleDelete(image_id: any) {
-  http.request('/image/delete', 'POST_JSON', { image_id: image_id });
+  http.request('/image/delete/', 'POST_JSON', { image_id: image_id });
   message.success('删除图片成功');
   fetchImages();
 }

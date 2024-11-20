@@ -109,8 +109,10 @@ export const useAccountStore = defineStore('account', {
                     if (data.status === 'success') {
                         this.logged = true;
                         http.setAuthorization(`Bearer ${data.token}`, new Date(data.expires));
-                        await useMenuStore().getMenuList(userType);
                         localStorage.setItem('usertype', userType);
+                        await useMenuStore().getMenuList(userType);
+                        console.log(userType);
+                        console.log(useMenuStore().menuList);
                         localStorage.setItem('username', username);
                         localStorage.setItem('logged', 'true');
                         localStorage.setItem('relation', '本人');
@@ -119,13 +121,13 @@ export const useAccountStore = defineStore('account', {
                                 await router.push('/admin_doctor');
                                 break;
                             case 't':
-                                await router.push('/reserve');
+                                await router.push('/user_reserve');
                                 break;
                             case 's':
-                                await router.push('/reserve');
+                                await router.push('/user_reserve');
                                 break;
                             default:
-                                await router.push('/myarrange');
+                                await router.push('/doctor_myarrange');
                         }
                         return data;
                     } else {

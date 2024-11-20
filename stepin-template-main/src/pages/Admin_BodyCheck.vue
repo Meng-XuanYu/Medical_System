@@ -134,7 +134,7 @@ const columns = [
 ];
 
 function fetchExaminations() {
-  http.request('/examination/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/examination/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     examinations.value = response.data;
 
   });
@@ -167,7 +167,7 @@ async function handleOk() {
   currentExamination.examination_date = dateform.year + '-' + dateform.month + '-' + dateform.day;
   if (isEdit.value) {
     try {
-      await http.request('/examination/update', 'POST_JSON', { ...currentExamination });
+      await http.request('/examination/update/', 'POST_JSON', { ...currentExamination });
       message.success('编辑体检项目成功');
     } finally {
       isModalVisible.value = false;
@@ -175,7 +175,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/examination/add', 'POST_JSON', { ...currentExamination });
+      await http.request('/examination/add/', 'POST_JSON', { ...currentExamination });
       message.success('新增体检项目成功');
     } finally {
       isModalVisible.value = false;
@@ -189,7 +189,7 @@ function handleCancel() {
 }
 
 function handleDelete(examination_id: any) {
-  http.request('/examination/delete', 'POST_JSON', { examination_id: examination_id });
+  http.request('/examination/delete/', 'POST_JSON', { examination_id: examination_id });
   message.success('删除体检项目成功');
   fetchExaminations();
 }

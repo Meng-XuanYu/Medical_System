@@ -113,7 +113,7 @@ const columns = [
 ];
 
 function fetchStaff() {
-  http.request('/staff/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/staff/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     staff.value = response.data;
   });
 }
@@ -141,7 +141,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/staff/update', 'POST_JSON', { ...currentStaff });
+      await http.request('/staff/update/', 'POST_JSON', { ...currentStaff });
       message.success('编辑医务人员信息成功');
     } finally {
       isModalVisible.value = false;
@@ -149,7 +149,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/staff/add', 'POST_JSON', { ...currentStaff });
+      await http.request('/staff/add/', 'POST_JSON', { ...currentStaff });
       message.success('新增医务人员信息成功');
     } finally {
       isModalVisible.value = false;
@@ -163,7 +163,7 @@ function handleCancel() {
 }
 
 function handleDelete(doctor_id: any) {
-  http.request('/staff/delete', 'POST_JSON', { doctor_id });
+  http.request('/staff/delete/', 'POST_JSON', { doctor_id });
   message.success('删除医务人员信息成功');
   fetchStaff();
 }

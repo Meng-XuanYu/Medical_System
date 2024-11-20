@@ -30,7 +30,7 @@
       </div>
       <!-- 六大基础功能介绍栏结束 -->
 
-      <br />
+      <br/>
       <span class="inline-block text-gray-200 text-xl mr-lg">
         <pre>
         北京航空航天大学 数据库课程小组设计
@@ -42,20 +42,22 @@
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from 'vue-router';
+import {useRouter} from 'vue-router';
 import {ElMessage} from "element-plus";
 import http from "@/store/http";
 
 const router = useRouter();
+
 function clearCache() {
   http.request(
-    '/logout/',
-    'post',
+      '/logout/',
+      'post',
   );
   localStorage.clear();
   sessionStorage.clear();
   ElMessage.success('Cache cleared successfully');
 }
+
 const features = [
   {
     title: '预约挂号',
@@ -99,20 +101,23 @@ function goToFeature(route: string) {
   router.push(route);
 }
 
+
 if (localStorage.getItem('logged') === 'true') {
+  console.log('已登录');
   switch (localStorage.getItem('usertype')) {
     case 's':
     case 't':
-      router.push('/reserve');
+      router.push('/user_reserve');
       break;
     case 'a':
       router.push('/admin_doctor');
       break;
     case 'd':
-        router.push('/myarrange');
-        break;
+      router.push('/doctor_myarrange');
+      break;
   }
 } else {
+  console.log('未登录');
   ElMessage.success('请先登录');
 }
 

@@ -120,7 +120,7 @@ const columns = [
 ];
 
 function fetchFamilyMembers() {
-  http.request('/family/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/family/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     familyMembers.value = response.data;
   });
 }
@@ -149,7 +149,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/family/update', 'POST_JSON', { ...currentFamilyMember });
+      await http.request('/family/update/', 'POST_JSON', { ...currentFamilyMember });
       message.success('编辑家属信息成功');
     } finally {
       isModalVisible.value = false;
@@ -157,7 +157,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/family/add', 'POST_JSON', { ...currentFamilyMember });
+      await http.request('/family/add/', 'POST_JSON', { ...currentFamilyMember });
       message.success('新增家属信息成功');
     } finally {
       isModalVisible.value = false;
@@ -171,7 +171,7 @@ function handleCancel() {
 }
 
 function handleDelete(family_id: any) {
-  http.request('/family/delete', 'POST_JSON', { family_id });
+  http.request('/family/delete/', 'POST_JSON', { family_id });
   message.success('删除家属信息成功');
   fetchFamilyMembers();
 }

@@ -105,7 +105,7 @@ const columns = [
 ];
 
 function fetchDrugStocks() {
-  http.request('/drugstock/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/drugstock/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     drugStocks.value = response.data;
   });
 }
@@ -127,7 +127,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/drugstock/update', 'POST_JSON', { ...currentDrugStock });
+      await http.request('/drugstock/update/', 'POST_JSON', { ...currentDrugStock });
       message.success('编辑药品库存成功');
     } finally {
       isModalVisible.value = false;
@@ -135,7 +135,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/drugstock/add', 'POST_JSON', { ...currentDrugStock });
+      await http.request('/drugstock/add/', 'POST_JSON', { ...currentDrugStock });
       message.success('新增药品库存成功');
     } finally {
       isModalVisible.value = false;
@@ -149,7 +149,7 @@ function handleCancel() {
 }
 
 function handleDelete(record: any) {
-  http.request('/drugstock/delete', 'POST_JSON', { drug_id: record.drug_id, pharmacy_id: record.pharmacy_id });
+  http.request('/drugstock/delete/', 'POST_JSON', { drug_id: record.drug_id, pharmacy_id: record.pharmacy_id });
   message.success('删除药品库存成功');
   fetchDrugStocks();
 }

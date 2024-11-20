@@ -129,7 +129,7 @@ const columns = [
 ];
 
 function fetchPrescriptions() {
-  http.request('/prescription/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/prescription/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     prescriptions.value = response.data;
   });
 }
@@ -151,7 +151,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/prescription/update', 'POST_JSON', { ...currentPrescription });
+      await http.request('/prescription/update/', 'POST_JSON', { ...currentPrescription });
       message.success('编辑处方信息成功');
     } finally {
       isModalVisible.value = false;
@@ -159,7 +159,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/prescription/add', 'POST_JSON', { ...currentPrescription });
+      await http.request('/prescription/add/', 'POST_JSON', { ...currentPrescription });
       message.success('新增处方信息成功');
     } finally {
       isModalVisible.value = false;
@@ -173,7 +173,7 @@ function handleCancel() {
 }
 
 function handleDelete(record: any) {
-  http.request('/prescription/delete', 'POST_JSON', { prescription_id: record.prescription_id });
+  http.request('/prescription/delete/', 'POST_JSON', { prescription_id: record.prescription_id });
   message.success('删除处方信息成功');
   fetchPrescriptions();
 }

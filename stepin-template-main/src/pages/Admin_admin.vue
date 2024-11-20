@@ -102,7 +102,7 @@ const columns = [
 ];
 
 function fetchAdmins() {
-  http.request('/admin/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/admin/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     admins.value = response.data;
   });
 }
@@ -128,7 +128,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/admin/update', 'POST_JSON', { ...currentAdmin });
+      await http.request('/admin/update/', 'POST_JSON', { ...currentAdmin });
       message.success('编辑管理员成功');
     } finally {
       isModalVisible.value = false;
@@ -136,7 +136,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/admin/add', 'POST_JSON', { ...currentAdmin });
+      await http.request('/admin/add/', 'POST_JSON', { ...currentAdmin });
       message.success('新增管理员成功');
     } finally {
       isModalVisible.value = false;
@@ -150,7 +150,7 @@ function handleCancel() {
 }
 
 function handleDelete(admin_id: any) {
-  http.request('/admin/delete', 'POST_JSON', { admin_id: admin_id });
+  http.request('/admin/delete/', 'POST_JSON', { admin_id: admin_id });
   message.success('删除管理员成功');
   fetchAdmins();
 }

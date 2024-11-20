@@ -113,7 +113,7 @@ const columns = [
 ];
 
 function fetchSchedules() {
-  http.request('/schedule/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/schedule/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     schedules.value = response.data;
   });
 }
@@ -140,7 +140,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/schedule/update', 'POST_JSON', { ...currentSchedule });
+      await http.request('/schedule/update/', 'POST_JSON', { ...currentSchedule });
       message.success('编辑排班信息成功');
     } finally {
       isModalVisible.value = false;
@@ -148,7 +148,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/schedule/add', 'POST_JSON', { ...currentSchedule });
+      await http.request('/schedule/add/', 'POST_JSON', { ...currentSchedule });
       message.success('新增排班信息成功');
     } finally {
       isModalVisible.value = false;
@@ -162,7 +162,7 @@ function handleCancel() {
 }
 
 function handleDelete(schedule_id: any) {
-  http.request('/schedule/delete', 'POST_JSON', { schedule_id });
+  http.request('/schedule/delete/', 'POST_JSON', { schedule_id });
   message.success('删除排班信息成功');
   fetchSchedules();
 }

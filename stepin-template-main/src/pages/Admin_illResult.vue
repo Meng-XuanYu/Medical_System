@@ -153,7 +153,7 @@ const columns = [
 ];
 
 function fetchDiagnoses() {
-  http.request('/diagnosis/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/diagnosis/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     diagnoses.value = response.data;
   });
 }
@@ -175,7 +175,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/diagnosis/update', 'POST_JSON', { ...currentDiagnosis });
+      await http.request('/diagnosis/update/', 'POST_JSON', { ...currentDiagnosis });
       message.success('编辑诊断信息成功');
     } finally {
       isModalVisible.value = false;
@@ -183,7 +183,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/diagnosis/add', 'POST_JSON', { ...currentDiagnosis });
+      await http.request('/diagnosis/add/', 'POST_JSON', { ...currentDiagnosis });
       message.success('新增诊断信息成功');
     } finally {
       isModalVisible.value = false;
@@ -197,7 +197,7 @@ function handleCancel() {
 }
 
 function handleDelete(record: any) {
-  http.request('/diagnosis/delete', 'POST_JSON', { diagnosis_id: record.diagnosis_id });
+  http.request('/diagnosis/delete/', 'POST_JSON', { diagnosis_id: record.diagnosis_id });
   message.success('删除诊断信息成功');
   fetchDiagnoses();
 }

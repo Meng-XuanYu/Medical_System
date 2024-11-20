@@ -113,7 +113,7 @@ const columns = [
 ];
 
 function fetchAppointments() {
-  http.request('/appointment/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/appointment/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     appointments.value = response.data;
   });
 }
@@ -135,7 +135,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/appointment/update', 'POST_JSON', { ...currentAppointment });
+      await http.request('/appointment/update/', 'POST_JSON', { ...currentAppointment });
       message.success('编辑预约信息成功');
     } finally {
       isModalVisible.value = false;
@@ -143,7 +143,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/appointment/add', 'POST_JSON', { ...currentAppointment });
+      await http.request('/appointment/add/', 'POST_JSON', { ...currentAppointment });
       message.success('新增预约信息成功');
     } finally {
       isModalVisible.value = false;
@@ -157,7 +157,7 @@ function handleCancel() {
 }
 
 function handleDelete(record: any) {
-  http.request('/appointment/delete', 'POST_JSON', { appointment_id: record.appointment_id });
+  http.request('/appointment/delete/', 'POST_JSON', { appointment_id: record.appointment_id });
   message.success('删除预约信息成功');
   fetchAppointments();
 }

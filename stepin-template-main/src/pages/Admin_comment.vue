@@ -121,7 +121,7 @@ const columns = [
 ];
 
 function fetchEvaluations() {
-  http.request('/evaluation/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/evaluation/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     evaluations.value = response.data;
   });
 }
@@ -149,7 +149,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/evaluation/update', 'POST_JSON', { ...currentEvaluation });
+      await http.request('/evaluation/update/', 'POST_JSON', { ...currentEvaluation });
       message.success('编辑评价信息成功');
     } finally {
       isModalVisible.value = false;
@@ -157,7 +157,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/evaluation/add', 'POST_JSON', { ...currentEvaluation });
+      await http.request('/evaluation/add/', 'POST_JSON', { ...currentEvaluation });
       message.success('新增评价信息成功');
     } finally {
       isModalVisible.value = false;
@@ -171,7 +171,7 @@ function handleCancel() {
 }
 
 function handleDelete(evaluation_id: any) {
-  http.request('/evaluation/delete', 'POST_JSON', { evaluation_id: evaluation_id });
+  http.request('/evaluation/delete/', 'POST_JSON', { evaluation_id: evaluation_id });
   message.success('删除评价信息成功');
   fetchEvaluations();
 }

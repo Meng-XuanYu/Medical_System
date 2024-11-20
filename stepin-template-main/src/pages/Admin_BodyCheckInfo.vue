@@ -119,7 +119,7 @@ const columns = [
 ];
 
 function fetchExaminationInfos() {
-  http.request('/examinationInfo/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/examinationInfo/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     examinationInfos.value = response.data;
   });
 }
@@ -151,7 +151,7 @@ async function handleOk() {
 
   if (isEdit.value) {
     try {
-      await http.request('/examinationInfo/update', 'POST_JSON', { ...currentExaminationInfo });
+      await http.request('/examinationInfo/update/', 'POST_JSON', { ...currentExaminationInfo });
       message.success('编辑体检预约信息成功');
     } finally {
       isModalVisible.value = false;
@@ -159,7 +159,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/examinationInfo/add', 'POST_JSON', { ...currentExaminationInfo });
+      await http.request('/examinationInfo/add/', 'POST_JSON', { ...currentExaminationInfo });
       message.success('新增体检预约信息成功');
     } finally {
       isModalVisible.value = false;
@@ -173,7 +173,7 @@ function handleCancel() {
 }
 
 function handleDelete(examination_id: any) {
-  http.request('/examinationInfo/delete', 'POST_JSON', { examination_id: examination_id });
+  http.request('/examinationInfo/delete/', 'POST_JSON', { examination_id: examination_id });
   message.success('删除体检预约信息成功');
   fetchExaminationInfos();
 }

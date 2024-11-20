@@ -97,7 +97,7 @@ const columns = [
 ];
 
 function fetchPharmacies() {
-  http.request('/pharmacy/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/pharmacy/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     pharmacies.value = response.data;
   });
 }
@@ -119,7 +119,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/pharmacy/update', 'POST_JSON', { ...currentPharmacy });
+      await http.request('/pharmacy/update/', 'POST_JSON', { ...currentPharmacy });
       message.success('编辑药房信息成功');
     } finally {
       isModalVisible.value = false;
@@ -127,7 +127,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/pharmacy/add', 'POST_JSON', { ...currentPharmacy });
+      await http.request('/pharmacy/add/', 'POST_JSON', { ...currentPharmacy });
       message.success('新增药房信息成功');
     } finally {
       isModalVisible.value = false;
@@ -141,7 +141,7 @@ function handleCancel() {
 }
 
 function handleDelete(pharmacy_id: any) {
-  http.request('/pharmacy/delete', 'POST_JSON', { pharmacy_id });
+  http.request('/pharmacy/delete/', 'POST_JSON', { pharmacy_id });
   message.success('删除药房信息成功');
   fetchPharmacies();
 }

@@ -97,7 +97,7 @@ const columns = [
 ];
 
 function fetchDepartments() {
-  http.request('/department/all', 'POST_JSON', { searchText: searchText.value }).then((response) => {
+  http.request('/department/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     departments.value = response.data;
   });
 }
@@ -119,7 +119,7 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/department/update', 'POST_JSON', { ...currentDepartment });
+      await http.request('/department/update/', 'POST_JSON', { ...currentDepartment });
       message.success('编辑科室信息成功');
     } finally {
       isModalVisible.value = false;
@@ -127,7 +127,7 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/department/add', 'POST_JSON', { ...currentDepartment });
+      await http.request('/department/add/', 'POST_JSON', { ...currentDepartment });
       message.success('新增科室信息成功');
     } finally {
       isModalVisible.value = false;
@@ -141,7 +141,7 @@ function handleCancel() {
 }
 
 function handleDelete(department_id: any) {
-  http.request('/department/delete', 'POST_JSON', { department_id });
+  http.request('/department/delete/', 'POST_JSON', { department_id });
   message.success('删除科室信息成功');
   fetchDepartments();
 }
