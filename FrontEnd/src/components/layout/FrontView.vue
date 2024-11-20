@@ -113,7 +113,7 @@
           </div>
         </div>
         <div class="front-content px-xl">
-          <router-view />
+          <router-view />/* 动态插入的页面内容？ */
         </div>
       </div>
     </div>
@@ -133,7 +133,7 @@
   }
 
 .front-view {
-  background: linear-gradient(270deg, #0077ff, #2feabe);
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);/* 符合主页菜单颜色的全局背景 */
   background-size: 400% 400%;
   animation: gradient-animation 5s ease infinite;
 
@@ -155,7 +155,12 @@
 
     .front-content {
       min-height: calc(100vh - 78px);
+      border-radius: 16px; /* 外层容器圆角 */
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 外层容器阴影 */
+      overflow: hidden; /* 确保圆角作用到内部内容 */
+      background: #3075e2; /* 中间色，兼具两种蓝色的特点 */
     }
+
   }
 
   .login-button {
