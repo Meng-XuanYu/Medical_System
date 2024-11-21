@@ -82,7 +82,7 @@ const features = [
     route: '/features/physical-exam',
   },
   {
-    title: '医生评价',
+    title: '医师评价',
     description: '对就诊经历进行评价，帮助提升医疗服务质量。',
     iconClass: 'fas fa-star',
     route: '/features/evaluation',
@@ -120,42 +120,111 @@ if (localStorage.getItem('logged') === 'true') {
 </script>
 
 <style scoped lang="less">
-.home {
-  min-height: max(100vh, 600px);
-  margin-top: 20px;
+.page-container {
+  background-color: #ffffff; /* 纯白背景 */
+  border-radius: 16px; /* 圆角设计，增加柔和感 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* 轻柔阴影，增加层次 */
+  padding: 24px; /* 内部留白，确保内容不贴边 */
+  margin: 20px auto; /* 居中显示，顶部和底部增加间距 */
+  max-width: 1200px; /* 最大宽度，避免内容过宽 */
+  transition: box-shadow 0.3s ease; /* 鼠标悬停时的平滑过渡 */
 }
 
-.features-grid {
-  /* 调整网格布局间距 */
+.page-container:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* 悬停时加深阴影，增加动态效果 */
 }
 
-.feature-card {
-  /* 样式调整 */
-  border: 1px solid #fff;
-  border-radius: 8px;
-  padding: 24px;
-  color: #fff;
-  text-align: left;
-  transition: background-color 0.3s, color 0.3s;
+.page-header {
+  font-size: 24px; /* 标题字体大小 */
+  font-weight: bold; /* 标题加粗 */
+  color: #1d4ed8; /* 主色调蓝色 */
+  border-bottom: 2px solid #e5e7eb; /* 底部分割线 */
+  padding-bottom: 12px; /* 与标题内容间距 */
+  margin-bottom: 24px; /* 标题与下方内容间距 */
 }
 
-.feature-card:hover {
-  background-color: #fff;
-  color: #1d4ed8; /* 可根据您的主色调调整 */
+.page-content {
+  font-size: 16px; /* 正文字体大小 */
+  color: #374151; /* 深灰色字体，提升可读性 */
+  line-height: 1.75; /* 行距，改善文本阅读体验 */
 }
 
-.feature-card .icon {
-  /* 图标样式 */
-  margin-bottom: 16px;
+.page-content a {
+  color: #2563eb; /* 链接使用蓝色 */
+  text-decoration: none; /* 去掉下划线 */
+  font-weight: 500; /* 增加链接文字厚重感 */
+  transition: color 0.3s ease; /* 鼠标悬停时平滑过渡 */
 }
 
-.feature-card h3 {
-  margin-bottom: 8px;
+.page-content a:hover {
+  color: #1d4ed8; /* 悬停时链接加深颜色 */
 }
 
-.feature-card p {
-  margin: 0;
+.page-footer {
+  text-align: center; /* 居中对齐 */
+  font-size: 14px; /* 较小字体 */
+  color: #9ca3af; /* 浅灰色文本 */
+  margin-top: 32px; /* 顶部留白 */
+  border-top: 1px solid #e5e7eb; /* 分隔线 */
+  padding-top: 16px; /* 内部间距 */
 }
 </style>
 
 
+<style scoped lang="less">
+.home {
+  min-height: max(100vh, 600px);
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #3075e2; /* 中间色，兼具两种蓝色的特点 */
+  color: #fff;
+  font-family: 'Inter', sans-serif; /* 更现代的字体 */
+}
+
+.features-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 响应式网格 */
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
+}
+
+.feature-card {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px; /* 更圆润的设计 */
+  padding: 32px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+  backdrop-filter: blur(10px); /* 毛玻璃效果 */
+  color: #fff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.feature-card:hover {
+  transform: translateY(-10px); /* 提升效果 */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.feature-card .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #ffed4a; /* 突出显示的颜色 */
+}
+
+.feature-card h3 {
+  margin-bottom: 8px;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.feature-card p {
+  margin: 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+</style>
