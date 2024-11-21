@@ -113,7 +113,7 @@
           </div>
         </div>
         <div class="front-content px-xl">
-          <router-view />/* 动态插入的页面内容？ */
+          <router-view /><!-- 动态插入的页面内容 -->
         </div>
       </div>
     </div>
