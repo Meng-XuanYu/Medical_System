@@ -1,13 +1,13 @@
 <template>
   <div class="home text-center flex flex-col">
     <div class="transform w-full">
-      <div class="tracking-wide slogan text-[2.5rem] xl:text-[4.25rem] font-extralight">
-        <span class="font-semibold">
-          预约 · 缴费 · 处方
-        </span>
-        <span style="margin-left: 50px;"> </span>
-        病历 · 取药 · 医评
+
+      <div class="tracking-wide slogan text-[2.5rem] xl:text-[4.25rem] font-light leading-tight">
+        <span class="font-bold">预约 · 缴费 · 处方</span>
+        <br />
+        <span class="text-secondary">病历 · 取药 · 医评</span>
       </div>
+
       <p class="text-subtext text-[1.5rem] xl:text-[1.75rem] font-extralight tracking-wide">
         北京航空航天大学-校医院-在线服务系统
       </p>
