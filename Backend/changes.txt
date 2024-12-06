@@ -8,3 +8,12 @@ Django 推荐密码字段长度至少为 128 字符，以确保兼容其所有�
 所有表示学工号的id替换成user_id
 user_id最长改为9位
 表11、表12增加字段：state # 体检状态：非空
+Evaluation增加evaluation_star评价星级字段
+新增支付项目表Payment
+属性名         字段名                 数据类型       约束
+支付项目号   payment_id              varchar(8)      not null
+支付项目名   payment_name            varchar(20)     not  null
+支付项目描述  payment_description     text            not null
+支付金额    money                   float           not  null
+付款对象    user                    外键
+是否已支付   is_paid                 boolean         not  null

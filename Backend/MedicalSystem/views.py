@@ -1,11 +1,10 @@
+from django.db.models import Prefetch
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.db import DataError
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib.auth import logout as auth_logout
 from django.core.exceptions import FieldError
-from MedicalSystem.auth_backends import *
-from MedicalSystem.view_funcs.base_user_funcs import *
 from MedicalSystem.view_funcs.menus import *
 from MedicalSystem.view_funcs.appointment_funcs import *
 import json
@@ -49,26 +48,6 @@ def page_login_doctor(request):
 @require_GET
 def page_login_admin(request):
     return render(request, "login_admin.html")
-
-
-@require_GET
-def view_doctors_page(request):
-    return render(request, "view_doctors.html")
-
-
-@require_GET
-def edit_doctor_page(request):
-    return render(request, "edit_doctor.html")
-
-
-@require_GET
-def view_appointments_page(request):
-    return render(request, "view_appointments.html")
-
-
-@require_GET
-def edit_appointment_page(request):
-    return render(request, "edit_appointment.html")
 
 
 @csrf_exempt  # 临时禁用 CSRF 检查
@@ -224,6 +203,57 @@ def logout(request):
     # 执行退出登录操作
     auth_logout(request)
     return JsonResponse({'status': 'success', 'message': '成功退出登录'}, status=200)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_base_user_profile(request):
+    # 确保当前用户已登录
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'error', 'message': '用户未登录'}, status=403)
+
+    # 获取当前登录用户
+    user = request.user
+
+    try:
+        # 判断用户类型并获取对应信息
+        if hasattr(user, 'user_id'):  # 普通用户
+            user_instance = User.objects.get(user_id=user.user_id)
+            user_data = {
+                'user_type': 'User',
+                'user_id': user_instance.user_id,
+                'name': user_instance.name,
+                'gender': user_instance.gender,
+                'birth': user_instance.birth,
+                'id_number': user_instance.id_number,
+                'phone': user_instance.phone,
+            }
+        elif hasattr(user, 'doctor_id'):  # 医师
+            doctor_instance = Doctor.objects.get(doctor_id=user.doctor_id)
+            user_data = {
+                'user_type': 'Doctor',
+                'doctor_id': doctor_instance.doctor_id,
+                'name': doctor_instance.name,
+                'gender': doctor_instance.gender,
+                'title': doctor_instance.title,
+                'image_id': doctor_instance.image_id,
+                'introduction': doctor_instance.introduction,
+            }
+        elif hasattr(user, 'admin_id'):  # 管理员
+            admin_instance = Admin.objects.get(admin_id=user.admin_id)
+            user_data = {
+                'user_type': 'Admin',
+                'admin_id': admin_instance.admin_id,
+                'name': admin_instance.name,
+            }
+        else:
+            return JsonResponse({'status': 'error', 'message': '无法识别的用户类型'}, status=400)
+
+        # 返回用户详细信息
+        return JsonResponse({'status': 'success', 'data': user_data}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'获取用户信息失败: {str(e)}'}, status=500)
 
 
 @csrf_exempt  # 临时禁用 CSRF 检查
@@ -634,6 +664,189 @@ def examination_cancel(request):
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_GET
+def get_user_wait(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前登录用户
+    user = request.user
+
+    try:
+        # 查询用户未完成的预约
+        appointment = (
+            Appointment.objects.filter(user=user, state="未开始")
+            .order_by('schedule__schedule_time', 'appointment_id')
+            .first()
+        )
+
+        if not appointment:
+            return JsonResponse({'status': 'success', 'data': ""}, status=200)
+
+        # 获取对应的排班信息
+        schedule = appointment.schedule
+
+        # 统计该时间段前方未完成人数
+        wait_count = Appointment.objects.filter(
+            schedule=schedule,
+            state="未开始",
+            appointment_id__lt=appointment.appointment_id  # 按预约号顺序计算
+        ).count()
+
+        # 返回预约详情和等待人数
+        response_data = {
+            'appointment_id': appointment.appointment_id,
+            'relationship': appointment.relationship,
+            'schedule_id': schedule.schedule_id,
+            'schedule_time': schedule.schedule_time,
+            'doctor_id': schedule.doctor.doctor_id,
+            'doctor_name': schedule.doctor.name,
+            'department_id': schedule.department.department_id,
+            'department_name': schedule.department.name,
+            'state': appointment.state,
+            'wait_count': wait_count,
+        }
+
+        return JsonResponse({'status': 'success', 'data': response_data}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'查询失败: {str(e)}'}, status=500)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_user_prescriptions(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前登录用户
+    user = request.user
+
+    # 查询与用户相关的所有预约记录
+    appointments = Appointment.objects.filter(user=user)
+
+    # 查询这些预约关联的诊断记录
+    diagnoses = Diagnosis.objects.filter(appointment__in=appointments)
+
+    # 查询与诊断关联的处方记录
+    prescriptions = Prescription.objects.filter(diagnosis__in=diagnoses).select_related('drug', 'diagnosis')
+
+    # 构建返回数据
+    prescriptions_list = []
+    for prescription in prescriptions:
+        prescriptions_list.append({
+            'prescription_id': prescription.prescription_id,
+            'diagnosis_id': prescription.diagnosis.diagnosis_id,
+            'drug_id': prescription.drug.drug_id,
+            'drug_name': prescription.drug.drug_name,
+            'drug_amount': prescription.drug_amount,
+            'usage': prescription.usage,
+            'precautions': prescription.precautions,
+        })
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': prescriptions_list})
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_user_ill_history(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前登录用户
+    user = request.user
+
+    # 查询与用户相关的所有预约记录
+    appointments = Appointment.objects.filter(user=user).select_related('schedule')
+
+    # 查询这些预约关联的诊断记录
+    diagnoses = Diagnosis.objects.filter(appointment__in=appointments).select_related('doctor', 'appointment')
+
+    # 构建返回数据
+    ill_history = []
+    for diagnosis in diagnoses:
+        schedule = diagnosis.appointment.schedule
+        ill_history.append({
+            'diagnosis_id': diagnosis.diagnosis_id,
+            'examination': diagnosis.examination,
+            'examination_result': diagnosis.examination_result,
+            'reference': diagnosis.reference,
+            'clinical_diagnosis': diagnosis.clinical_diagnosis,
+            'diagnosis_time': diagnosis.diagnosis_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'doctor_name': diagnosis.doctor.name if diagnosis.doctor else None,
+            'department_name': schedule.department.department_name if schedule.department else None,
+            'appointment_id': diagnosis.appointment.appointment_id
+        })
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': ill_history})
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_user_payments(request):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前用户
+    user = request.user
+
+    # 查询当前用户的支付记录
+    payments = Payment.objects.filter(user=user).order_by('-payment_id')
+
+    # 构建支付信息列表
+    payment_data = [
+        {
+            'payment_id': payment.payment_id,
+            'payment_name': payment.payment_name,
+            'payment_description': payment.payment_description,
+            'money': payment.money,
+            'is_paid': payment.is_paid,
+        }
+        for payment in payments
+    ]
+
+    # 返回支付记录
+    return JsonResponse({
+        'status': 'success',
+        'data': payment_data
+    }, safe=False)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_user_payment_check(request, payment_id):
+    # 确保当前用户已登录，并且用户类型是 User
+    if not is_user(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前用户
+    user = request.user
+
+    try:
+        # 查询对应支付记录
+        payment = Payment.objects.get(payment_id=payment_id)
+
+        # 验证支付记录是否属于当前用户
+        if payment.user != user:
+            return JsonResponse({'status': 'error', 'message': '权限错误：无法访问他人支付信息'}, status=403)
+
+        # 检查是否已支付
+        if payment.is_paid:
+            return JsonResponse({'status': 'success', 'message': '支付已完成', 'is_paid': True})
+        else:
+            return JsonResponse({'status': 'success', 'message': '支付未完成', 'is_paid': False})
+
+    except Payment.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '支付记录不存在'}, status=404)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
 def get_family_members(request):
     # 确保当前用户已登录，并且用户为教师
     if not is_teacher(request.user):
@@ -754,130 +967,403 @@ def delete_family_members(request):
     return JsonResponse({'status': 'success', 'message': '家属删除成功'})
 
 
-# @csrf_exempt  # 临时禁用 CSRF 检查
-# @require_GET
-# def view_doctor(request):
-#     # 确保当前用户已登录，并且用户类型是 Admin
-#     if not is_admin(request.user):
-#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-#
-#     doctor_id = request.GET.get('doctor_id')
-#     if not doctor_id:
-#         return JsonResponse({'status': 'error', 'message': '缺少医工号'}, status=400)
-#
-#     try:
-#         doctor = Doctor.objects.get(doctor_id=doctor_id)
-#         data = doctor.get_view_dic()
-#         data['status'] = 'success'
-#         return JsonResponse(data)
-#     except Doctor.DoesNotExist:
-#         return JsonResponse({'status': 'error', 'message': '医师不存在'}, status=404)
-#
-#
-# @csrf_exempt  # 临时禁用 CSRF 检查
-# @require_GET
-# def view_doctors(request):
-#     # 确保当前用户已登录，并且用户类型是 Admin
-#     if not is_admin(request.user):
-#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-#
-#     doctors = Doctor.objects.all()
-#     doctors_list = [doctor.get_view_dic() for doctor in doctors]
-#     return JsonResponse({'status': 'success', 'doctors': doctors_list})
-#
-#
-# @csrf_exempt  # 临时禁用 CSRF 检查
-# @require_POST
-# def edit_doctor(request):
-#     # 确保当前用户已登录，并且用户类型是 Admin
-#     if not is_admin(request.user):
-#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-#
-#     try:
-#         data = json.loads(request.body)  # 从请求体解析 JSON 数据
-#
-#         check_return = fields_check(Doctor, data)
-#         if check_return is not None:
-#             return check_return
-#
-#         doctor_id = data.get('doctor_id')
-#         doctor = Doctor.objects.get(doctor_id=doctor_id)
-#
-#         # 更新医师信息
-#         doctor.name = data.get('name', doctor.name)
-#         doctor.gender = data.get('gender', doctor.gender)
-#         doctor.title = data.get('title', doctor.title)
-#         doctor.image_id = data.get('image_id', doctor.image_id)
-#         doctor.introduction = data.get('introduction', doctor.introduction)
-#         doctor.save()
-#
-#         return JsonResponse({'status': 'success', 'message': '医师信息已更新'})
-#     except Doctor.DoesNotExist:
-#         return JsonResponse({'status': 'error', 'message': '医师不存在'}, status=404)
-#     except json.JSONDecodeError:
-#         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
-#
-#
-# @csrf_exempt  # 临时禁用 CSRF 检查
-# @require_GET
-# def view_appointment(request):
-#     # 确保当前用户已登录，并且用户类型是 Admin
-#     if not is_admin(request.user):
-#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-#
-#     appointment_id = request.GET.get('appointment_id')
-#     if not appointment_id:
-#         return JsonResponse({'status': 'error', 'message': '缺少预约号'}, status=400)
-#
-#     try:
-#         appointment = Appointment.objects.get(appointment_id=appointment_id)
-#         data = appointment.get_view_dic()
-#         data['status'] = 'success'
-#         return JsonResponse(data)
-#     except Appointment.DoesNotExist:
-#         return JsonResponse({'status': 'error', 'message': '预约不存在'}, status=404)
-#
-#
-# @csrf_exempt  # 临时禁用 CSRF 检查
-# @require_GET
-# def view_appointments(request):
-#     # 确保当前用户已登录，并且用户类型是 Admin
-#     if not is_admin(request.user):
-#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-#
-#     appointments = Appointment.objects.all()
-#     appointments_list = [appointment.get_view_dic() for appointment in appointments]
-#     return JsonResponse({'status': 'success', 'appointments': appointments_list})
-#
-#
-# @csrf_exempt  # 临时禁用 CSRF 检查
-# @require_POST
-# def edit_appointment(request):
-#     # 确保当前用户已登录，并且用户类型是 Admin
-#     if not is_admin(request.user):
-#         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-#
-#     try:
-#         data = json.loads(request.body)
-#
-#         check_return = fields_check(Appointment, data)
-#         if check_return is not None:
-#             return check_return
-#
-#         appointment_id = data.get('appointment_id')
-#         appointment = Appointment.objects.get(appointment_id=appointment_id)
-#
-#         # 更新预约信息
-#         appointment.relationship = data.get('relationship', appointment.relationship)
-#         appointment.schedule_id = data.get('schedule_id', appointment.schedule_id)
-#         appointment.user_id = data.get('student_id', appointment.user_id)
-#         appointment.save()
-#
-#         return JsonResponse({'status': 'success', 'message': '预约信息已更新'})
-#     except Appointment.DoesNotExist:
-#         return JsonResponse({'status': 'error', 'message': '预约不存在'}, status=404)
-#     except json.JSONDecodeError:
-#         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_doctor_schedule(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取与当前登录医师相关的排班数据
+    doctor = request.user
+    schedules = Schedule.objects.filter(doctor=doctor).select_related('department')
+
+    # 构建结果数据
+    schedule_data = [
+        {
+            'schedule_id': schedule.schedule_id,
+            'schedule_time': schedule.schedule_time,
+            'department_name': schedule.department.department_name,
+        }
+        for schedule in schedules
+    ]
+
+    return JsonResponse({'status': 'success', 'data': schedule_data}, safe=False)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_doctor_schedule_appointment(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前登录医生
+    doctor = request.user
+
+    # 查询医生的所有排班记录
+    schedules = Schedule.objects.filter(doctor=doctor)
+
+    # 创建字典存储结果
+    schedule_appointment_dict = {}
+
+    # 遍历排班记录，获取对应的预约信息
+    for schedule in schedules:
+        # 查询与当前排班相关的预约信息
+        appointments = Appointment.objects.filter(schedule=schedule)
+
+        # 构建预约信息的列表
+        appointment_list = [
+            {
+                'appointment_id': appointment.appointment_id,
+                'user_name': appointment.user.name,
+                'relationship': appointment.relationship,
+                'state': appointment.state
+            }
+            for appointment in appointments
+        ]
+
+        # 将排班时间和对应的预约信息添加到字典中
+        schedule_time_str = schedule.schedule_time.strftime('%Y-%m-%d %H:%M:%S')
+        schedule_appointment_dict[schedule_time_str] = appointment_list
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': schedule_appointment_dict}, safe=False)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_doctor_comments(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前登录医生
+    doctor = request.user
+
+    # 查询与当前医生相关的所有评价
+    evaluations = Evaluation.objects.filter(doctor=doctor).order_by('-evaluation_time')
+
+    # 构建返回数据
+    comments = [
+        {
+            'evaluation_id': evaluation.evaluation_id,
+            'evaluation': evaluation.evaluation,
+            'evaluation_star': evaluation.evaluation_star,
+            'evaluation_time': evaluation.evaluation_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'user_name': evaluation.user.name if evaluation.user else None
+        }
+        for evaluation in evaluations
+    ]
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': comments}, safe=False)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_doctor_patients_past(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前登录医生
+    doctor = request.user
+
+    # 查询该医生排班下的所有已完成预约
+    appointments = Appointment.objects.filter(
+        schedule__doctor=doctor,
+        state='已完成'  # 筛选状态为 "已完成"
+    ).select_related('user', 'schedule')
+
+    # 构建返回数据
+    patients = []
+    for appointment in appointments:
+        user = appointment.user
+        patients.append({
+            'appointment_id': appointment.appointment_id,
+            'patient_name': user.name,
+            'patient_gender': user.gender,
+            'patient_birth': user.birth.strftime('%Y-%m-%d'),
+            'patient_id_number': user.id_number,
+            'schedule_time': appointment.schedule.schedule_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'relationship': appointment.relationship
+        })
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': patients}, safe=False)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_doctor_patients_future(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前登录医生
+    doctor = request.user
+
+    # 查询该医生排班下的所有未完成预约
+    appointments = Appointment.objects.filter(
+        schedule__doctor=doctor,
+        state='未完成'  # 筛选状态为 "未完成"
+    ).select_related('user', 'schedule')
+
+    # 构建返回数据
+    patients = []
+    for appointment in appointments:
+        user = appointment.user
+        patients.append({
+            'appointment_id': appointment.appointment_id,
+            'patient_name': user.name,
+            'patient_gender': user.gender,
+            'patient_birth': user.birth.strftime('%Y-%m-%d'),
+            'patient_id_number': user.id_number,
+            'schedule_time': appointment.schedule.schedule_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'relationship': appointment.relationship
+        })
+
+    # 返回 JSON 响应
+    return JsonResponse({'status': 'success', 'data': patients}, safe=False)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def doctor_add_prescription(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 解析请求体
+    data = json.loads(request.body)
+    appointment_id = data.get('appointment_id')
+    drug_id = data.get('drug_id')
+    drug_amount = data.get('drug_amount')
+    usage = data.get('usage')
+    precautions = data.get('precautions')
+
+    check_return = fields_check(Prescription, data, True)
+    if check_return is not None:
+        return check_return
+
+    # 验证预约号是否存在，并获取对应诊断
+    appointment = Appointment.objects.filter(appointment_id=appointment_id).select_related('schedule').first()
+    if not appointment:
+        return JsonResponse({'status': 'error', 'message': '预约号不存在'}, status=404)
+
+    # 验证当前医生是否为该预约对应的医生
+    if appointment.schedule.doctor != request.user:
+        return JsonResponse({'status': 'error', 'message': '权限错误：该预约不属于当前医生'}, status=403)
+
+    # 获取诊断记录
+    diagnosis = Diagnosis.objects.filter(appointment=appointment).first()
+    if not diagnosis:
+        return JsonResponse({'status': 'error', 'message': '诊断记录不存在，请先填写诊断'}, status=404)
+
+    # 获取药品记录
+    drug = Drug.objects.filter(drug_id=drug_id).first()
+    if not drug:
+        return JsonResponse({'status': 'error', 'message': '药品不存在'}, status=404)
+
+    # 创建处方记录
+    prescription = Prescription.objects.create(
+        prescription_id=Prescription.generate_incremental_prescription_id(),
+        diagnosis=diagnosis,
+        drug=drug,
+        drug_amount=drug_amount,
+        usage=usage,
+        precautions=precautions
+    )
+
+    # 返回成功响应
+    return JsonResponse({
+        'status': 'success',
+        'message': '处方添加成功',
+        'prescription_id': prescription.prescription_id
+    }, status=201)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_doctor_prescription(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前医生的所有已完成的预约记录
+    completed_appointments = Appointment.objects.filter(
+        schedule__doctor=request.user,
+        state='已完成'
+    ).select_related('schedule').prefetch_related(
+        Prefetch(
+            'diagnosis_set',
+            queryset=Diagnosis.objects.prefetch_related('prescriptions'),
+            to_attr='diagnoses_with_prescriptions'
+        )
+    )
+
+    # 构建结果数据
+    data = []
+    for appointment in completed_appointments:
+        appointment_data = {
+            'appointment_id': appointment.appointment_id,
+            'patient_name': appointment.user.name,
+            'diagnoses': []
+        }
+
+        # 获取每个诊断及其对应的处方
+        for diagnosis in getattr(appointment, 'diagnoses_with_prescriptions', []):
+            diagnosis_data = {
+                'diagnosis_id': diagnosis.diagnosis_id,
+                'clinical_diagnosis': diagnosis.clinical_diagnosis,
+                'prescriptions': []
+            }
+
+            # 添加处方信息
+            for prescription in diagnosis.prescriptions.all():
+                prescription_data = {
+                    'prescription_id': prescription.prescription_id,
+                    'drug_id': prescription.drug.drug_id,
+                    'drug_name': prescription.drug.name,
+                    'drug_amount': prescription.drug_amount,
+                    'usage': prescription.usage,
+                    'precautions': prescription.precautions
+                }
+                diagnosis_data['prescriptions'].append(prescription_data)
+
+            appointment_data['diagnoses'].append(diagnosis_data)
+
+        data.append(appointment_data)
+
+    return JsonResponse({'status': 'success', 'data': data}, status=200)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_GET
+def get_medicine_info(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 查询所有药品及其库存信息
+    drugs = Drug.objects.all().select_related()
+
+    # 构建结果数据
+    data = []
+    for drug in drugs:
+        inventories = DrugInventory.objects.filter(drug_id=drug.drug_id).select_related('pharmacy')
+
+        # 获取药品库存信息
+        inventory_info = []
+        for inventory in inventories:
+            inventory_info.append({
+                "pharmacy_id": inventory.pharmacy.pharmacy_id,
+                "pharmacy_name": inventory.pharmacy.pharmacy_name,
+                "drug_amount": inventory.drug_amount,
+            })
+
+        # 添加药品信息
+        data.append({
+            "drug_id": drug.drug_id,
+            "drug_name": drug.drug_name,
+            "price": drug.price,
+            "inventories": inventory_info,
+        })
+
+    return JsonResponse({'status': 'success', 'data': data}, status=200)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def set_doctor_schedule_appointment_done(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 获取当前登录医生
+    doctor = request.user
+
+    # 解析请求体数据
+    data = json.loads(request.body)
+    appointment_id = data.get('appointment_id')
+    if not appointment_id:
+        return JsonResponse({'status': 'error', 'message': '预约号不能为空'}, status=400)
+
+    # 查询预约信息并校验关联的排班是否属于当前医生
+    appointment = Appointment.objects.select_related('schedule__doctor').filter(
+        appointment_id=appointment_id).first()
+    if not appointment:
+        return JsonResponse({'status': 'error', 'message': '预约不存在'}, status=404)
+
+    if appointment.schedule.doctor != doctor:
+        return JsonResponse({'status': 'error', 'message': '该预约不属于当前医师'}, status=403)
+
+    # 更新预约状态为已完成
+    appointment.state = '已完成'
+    appointment.save()
+
+    return JsonResponse({'status': 'success', 'message': '预约状态已更新为已完成'}, status=200)
+
+
+@csrf_exempt  # 临时禁用 CSRF 检查
+@require_POST
+def doctor_prescribe(request):
+    # 确保当前用户已登录，并且用户为医师
+    if not is_doctor(request.user):
+        return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+
+    # 解析请求体
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
+    prescription_id = data.get('prescription_id')
+    if not prescription_id:
+        return JsonResponse({'status': 'error', 'message': '处方号不能为空'}, status=400)
+
+    try:
+        # 获取处方记录
+        prescription = Prescription.objects.select_related('diagnosis', 'drug').get(prescription_id=prescription_id)
+    except Prescription.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': '处方不存在'}, status=404)
+
+    # 验证处方是否属于当前医生
+    diagnosis = prescription.diagnosis
+    if not diagnosis or diagnosis.doctor != request.user:
+        return JsonResponse({'status': 'error', 'message': '权限错误：此处方不属于当前医生'}, status=403)
+
+    # 获取药品库存信息
+    drug_inventory = DrugInventory.objects.filter(drug_id=prescription.drug.drug_id).first()
+    if not drug_inventory:
+        return JsonResponse({'status': 'error', 'message': '药品库存不存在'}, status=404)
+
+    # 检查库存是否足够
+    if drug_inventory.drug_amount < prescription.drug_amount:
+        return JsonResponse({'status': 'error', 'message': '药品库存不足'}, status=400)
+
+    # 扣减库存
+    drug_inventory.drug_amount -= prescription.drug_amount
+    drug_inventory.save()
+
+    # 创建支付项目
+    payment = Payment.objects.create(
+        payment_id=Payment.generate_incremental_payment_id(),
+        payment_name=f"处方支付 - {prescription.drug.drug_name}",
+        payment_description=f"处方 {prescription_id} 对应药品 {prescription.drug.drug_name} 的费用",
+        money=prescription.drug.price * prescription.drug_amount,
+        user=diagnosis.appointment.user,
+        is_paid=False
+    )
+
+    # 返回成功响应
+    return JsonResponse({
+        'status': 'success',
+        'message': '药品已成功开具',
+        'payment_id': payment.payment_id,
+        'payment_amount': payment.money
+    }, status=201)
 
 
 # 测试用函数

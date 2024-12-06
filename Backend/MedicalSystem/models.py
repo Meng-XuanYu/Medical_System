@@ -58,7 +58,7 @@ class User(BaseUser):
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
     birth = models.DateField(null=False, blank=False)  # 出生日期：非空
-    id_number = models.CharField(max_length=18, null=False, blank=False)  # 身份证号：非空
+    id_number = models.CharField(max_length=18, null=False, blank=False, db_index=True)  # 身份证号：非空
     user_type = models.CharField(max_length=1, null=False, blank=False)  # 用户类型：非空
     phone = models.CharField(max_length=11, null=False, blank=False)  # 手机号：非空
 
@@ -184,20 +184,20 @@ class Admin(BaseUser):
 # 表 4: 家属数据元素表
 class FamilyMember(models.Model):
     family_id = models.CharField(max_length=2, null=False, blank=False)  # 家属号：主键
-    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
+    user = models.ForeignKey('User', on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
                              db_index=True)  # 外键引用 User
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 关系：非空
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
     birth = models.DateField(null=False, blank=False)  # 出生日期：非空
-    id_number = models.CharField(max_length=18, null=False, blank=False)  # 身份证号：非空
+    id_number = models.CharField(max_length=18, null=False, blank=False, db_index=True)  # 身份证号：非空
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['family_id', 'user'], name='unique_family_teacher')
+            models.UniqueConstraint(fields=['family_id', 'user'], name='unique_family_teacher'),
         ]
         indexes = [
-            models.Index(fields=['family_id', 'user']),
+            models.Index(fields=['family_id', 'user']),  # 家属号 + 用户复合索引
         ]
 
     @classmethod
@@ -230,9 +230,9 @@ class FamilyMember(models.Model):
     @classmethod
     def generate_incremental_family_id(cls):
         # 获取现有的最大 family_id
-        last_family_member_info = cls.objects.order_by('-family_id').first()
-        if last_family_member_info and last_family_member_info.family_id.isdigit():
-            next_id = int(last_family_member_info.family_id) + 1
+        last_family_member = cls.objects.order_by('-family_id').first()
+        if last_family_member and last_family_member.family_id.isdigit():
+            next_id = int(last_family_member.family_id) + 1
         else:
             next_id = 1
         return str(next_id).zfill(2)  # 补齐 2 位
@@ -274,7 +274,8 @@ class Schedule(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['department_id', 'doctor'])  # 复合索引
+            models.Index(fields=['doctor', 'department']),  # 医生 + 科室复合索引
+            models.Index(fields=['doctor', 'schedule_time']),  # 医生 + 排班时间复合索引
         ]
 
     @classmethod
@@ -355,11 +356,15 @@ class Drug(models.Model):
 class DrugInventory(models.Model):
     drug_id = models.CharField(max_length=9)  # 药品号：主键
     drug_amount = models.IntegerField(null=False, blank=False)  # 药品数量：非空
-    pharmacy_id = models.CharField(max_length=2)  # 药房号：主键
+    pharmacy = models.ForeignKey('Pharmacy', on_delete=models.CASCADE, to_field='pharmacy_id', null=True,
+                                 db_index=True)  # 外键引用 Pharmacy
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['drug_id', 'pharmacy_id'], name='unique_drug_pharmacy')
+            models.UniqueConstraint(fields=['drug_id', 'pharmacy'], name='unique_drug_pharmacy'),
+        ]
+        indexes = [
+            models.Index(fields=['drug_id', 'pharmacy']),  # 药品号 + 药房复合索引
         ]
 
     @classmethod
@@ -416,11 +421,11 @@ class ExaminationArrangement(models.Model):
 # 表 11: 体检信息数据元素表
 class ExaminationInfo(models.Model):
     exam_appointment_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 体检预约号：主键
-    examination_arrangement = models.ForeignKey(ExaminationArrangement, on_delete=models.CASCADE,
+    examination_arrangement = models.ForeignKey('ExaminationArrangement', on_delete=models.CASCADE,
                                                 to_field='examination_id', null=True, blank=False,
                                                 db_index=True)  # 外键引用 ExaminationArrangement
     examination_result = models.TextField(null=True, blank=True)  # 体检结果：可空
-    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
+    user = models.ForeignKey('User', on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
                              db_index=True)  # 外键引用 User
     state = models.CharField(max_length=8, null=True, blank=False)  # 体检状态：非空
 
@@ -451,41 +456,29 @@ class ExaminationInfo(models.Model):
     @classmethod
     def generate_incremental_exam_appointment_id(cls):
         # 获取现有的最大 appointment_id
-        last_examination_info = cls.objects.order_by('-exam_appointment_id').first()
-        if last_examination_info and last_examination_info.exam_appointment_id.isdigit():
-            next_id = int(last_examination_info.appointment_id) + 1
+        last_exam_appointment = cls.objects.order_by('-exam_appointment_id').first()
+        if last_exam_appointment and last_exam_appointment.exam_appointment_id.isdigit():
+            next_id = int(last_exam_appointment.appointment_id) + 1
         else:
             next_id = 1
         return str(next_id).zfill(8)  # 补齐 8 位
-
-    def get_view_dic(self):
-        return {
-            'exam_appointment_id': self.exam_appointment_id,
-            'examination_id': self.examination_id,
-            'examination_result': self.examination_result,
-            'user_id': self.user_id
-        }
-
-    def update_view_fields(self, data):
-        self.examination_id = data.get('examination_id', self.examination_id)
-        self.examination_result = data.get('examination_result', self.examination_result)
-        self.user_id = data.get('user_id', self.user_id)
-        self.save()
 
 
 # 表 12: 预约数据元素表
 class Appointment(models.Model):
     appointment_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 预约号：主键
     relationship = models.CharField(max_length=10, null=False, blank=False)  # 患者与预约人关系：非空
-    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, to_field='schedule_id', null=True, blank=False,
+    schedule = models.ForeignKey('Schedule', on_delete=models.CASCADE, to_field='schedule_id', null=True, blank=False,
                                  db_index=True)  # 外键引用 Schedule
-    user = models.ForeignKey(User, on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
+    user = models.ForeignKey('User', on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
                              db_index=True)  # 外键引用 User
-    state = models.CharField(max_length=8, null=True, blank=False)  # 体检状态：非空
+    state = models.CharField(max_length=8, null=True, blank=False, db_index=True)  # 预约状态：非空
 
     class Meta:
         indexes = [
-            models.Index(fields=['appointment_id', 'relationship', 'user'])  # 复合索引
+            models.Index(fields=['relationship', 'user']),  # 关系 + 用户复合索引
+            models.Index(fields=['schedule', 'state']),  # 排班 + 状态复合索引
+            models.Index(fields=['user', 'state']),  # 用户 + 状态复合索引
         ]
 
     @classmethod
@@ -540,20 +533,6 @@ class Appointment(models.Model):
             next_id = 1
         return str(next_id).zfill(8)  # 补齐 8 位
 
-    def get_view_dic(self):
-        return {
-            'appointment_id': self.appointment_id,
-            'relationship': self.relationship,
-            'schedule_id': self.schedule_id,
-            'user_id': self.user_id
-        }
-
-    def update_view_fields(self, data):
-        self.relationship = data.get('relationship', self.relationship)
-        self.schedule_id = data.get('schedule_id', self.schedule_id)
-        self.user_id = data.get('user_id', self.user_id)
-        self.save()
-
 
 # 表 13: 诊断数据元素表
 class Diagnosis(models.Model):
@@ -562,11 +541,14 @@ class Diagnosis(models.Model):
     examination_result = models.TextField(null=False, blank=False)  # 检查结果：非空
     reference = models.TextField(null=False, blank=False)  # 参考范围：非空
     clinical_diagnosis = models.TextField(null=False, blank=False)  # 临床诊断：非空
-    prescription_id = models.CharField(max_length=8, null=False, blank=False)  # 处方号：非空
+    prescription = models.ForeignKey('Prescription', on_delete=models.CASCADE, to_field='prescription_id', null=True,
+                                     db_index=True, related_name='diagnoses')  # 外键引用 Prescription
     diagnosis_time = models.DateTimeField(null=False, blank=False)  # 诊断时间：非空
     id_number = models.CharField(max_length=18, null=False, blank=False)  # 患者身份证号：非空
-    appointment_id = models.CharField(max_length=8, null=False, blank=False)  # 预约号：非空
-    doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 医工号：非空
+    appointment = models.ForeignKey('Appointment', on_delete=models.CASCADE, to_field='appointment_id', null=True,
+                                    db_index=True)  # 外键引用 Appointment
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, to_field='doctor_id', null=True,
+                               db_index=True)  # 外键引用 Doctor
 
     @classmethod
     def get_fields(cls):
@@ -600,38 +582,14 @@ class Diagnosis(models.Model):
     def prepare_data(cls, data):
         return data
 
-    def get_view_dic(self):
-        return {
-            'diagnosis_id': self.diagnosis_id,
-            'examination': self.examination,
-            'examination_result': self.examination_result,
-            'reference': self.reference,
-            'clinical_diagnosis': self.clinical_diagnosis,
-            'prescription_id': self.prescription_id,
-            'diagnosis_time': self.diagnosis_time,
-            'id_number': self.id_number,
-            'appointment_id': self.appointment_id,
-            'doctor_id': self.doctor_id
-        }
-
-    def update_view_fields(self, data):
-        self.examination = data.get('examination', self.examination)
-        self.examination_result = data.get('examination_result', self.examination_result)
-        self.reference = data.get('reference', self.reference)
-        self.clinical_diagnosis = data.get('clinical_diagnosis', self.clinical_diagnosis)
-        self.prescription_id = data.get('prescription_id', self.prescription_id)
-        self.diagnosis_time = data.get('diagnosis_time', self.diagnosis_time)
-        self.id_number = data.get('id_number', self.id_number)
-        self.appointment_id = data.get('appointment_id', self.appointment_id)
-        self.doctor_id = data.get('doctor_id', self.doctor_id)
-        self.save()
-
 
 # 表 14: 处方数据元素表
 class Prescription(models.Model):
     prescription_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 处方号：主键
-    diagnosis_id = models.CharField(max_length=8, null=False, blank=False)  # 诊断号：非空
-    drug_id = models.CharField(max_length=9, null=False, blank=False)  # 药品号：非空
+    diagnosis = models.ForeignKey('Diagnosis', on_delete=models.CASCADE, to_field='diagnosis_id', null=True,
+                                  db_index=True, related_name='prescriptions')  # 外键引用 Diagnosis
+    drug = models.ForeignKey('Drug', on_delete=models.CASCADE, to_field='drug_id', null=True,
+                             db_index=True)  # 外键引用 Drug
     drug_amount = models.IntegerField(null=False, blank=False)  # 药品数量：非空
     usage = models.TextField(null=False, blank=False)  # 用法用量：非空
     precautions = models.TextField(null=False, blank=False)  # 注意事项：非空
@@ -664,23 +622,16 @@ class Prescription(models.Model):
     def prepare_data(cls, data):
         return data
 
-    def get_view_dic(self):
-        return {
-            'prescription_id': self.prescription_id,
-            'diagnosis_id': self.diagnosis_id,
-            'drug_id': self.drug_id,
-            'drug_amount': self.drug_amount,
-            'usage': self.usage,
-            'precautions': self.precautions
-        }
-
-    def update_view_fields(self, data):
-        self.diagnosis_id = data.get('diagnosis_id', self.diagnosis_id)
-        self.drug_id = data.get('drug_id', self.drug_id)
-        self.drug_amount = data.get('drug_amount', self.drug_amount)
-        self.usage = data.get('usage', self.usage)
-        self.precautions = data.get('precautions', self.precautions)
-        self.save()
+    # 生成唯一的递增预约号，从 1 开始。如果已存在，则跳到下一个可用的数字
+    @classmethod
+    def generate_incremental_prescription_id(cls):
+        # 获取现有的最大 prescription_id
+        last_prescription = cls.objects.order_by('-prescription_id').first()
+        if last_prescription and last_prescription.prescription_id.isdigit():
+            next_id = int(last_prescription.prescription_id) + 1
+        else:
+            next_id = 1
+        return str(next_id).zfill(8)  # 补齐 8 位
 
 
 # 表 15: 通知数据元素表
@@ -688,7 +639,8 @@ class Notification(models.Model):
     notification_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 通知号：主键
     notification = models.TextField(null=False, blank=False)  # 通知内容：非空
     notification_time = models.DateTimeField(null=False, blank=False)  # 通知时间：非空
-    user_id = models.CharField(max_length=8, null=False, blank=False)  # 接收人学工号：非空
+    user = models.ForeignKey('User', on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
+                             db_index=True)  # 外键引用 User
 
     @classmethod
     def get_fields(cls):
@@ -716,28 +668,22 @@ class Notification(models.Model):
     def prepare_data(cls, data):
         return data
 
-    def get_view_dic(self):
-        return {
-            'notification_id': self.notification_id,
-            'notification_text': self.notification,
-            'notification_time': self.notification_time,
-            'user_id': self.user_id
-        }
-
-    def update_view_fields(self, data):
-        self.notification = data.get('notification', self.notification)
-        self.notification_time = data.get('notification_time', self.notification_time)
-        self.user_id = data.get('user_id', self.user_id)
-        self.save()
-
 
 # 表 16: 评价数据元素表
 class Evaluation(models.Model):
     evaluation_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 评价号：主键
     evaluation = models.TextField(null=False, blank=False)  # 评价内容：非空
+    evaluation_star = models.IntegerField(null=False, blank=False)  # 评价星级：非空
     evaluation_time = models.DateTimeField(null=False, blank=False)  # 评价时间：非空
-    user_id = models.CharField(max_length=8, null=False, blank=False)  # 评价人学工号：非空
-    doctor_id = models.CharField(max_length=5, null=False, blank=False)  # 被评价人医工号：非空
+    user = models.ForeignKey('User', on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
+                             db_index=True)  # 外键引用 User
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, to_field='doctor_id', null=True,
+                               db_index=True)  # 外键引用 Doctor
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['doctor', 'evaluation_time']),  # 医师 + 评价时间复合索引
+        ]
 
     @classmethod
     def get_fields(cls):
@@ -748,6 +694,7 @@ class Evaluation(models.Model):
         return {
             'evaluation_id': 8,
             'evaluation': None,  # text字段无需长度限制
+            'evaluation_star': None,  # 整数字段无需长度限制
             'evaluation_time': None,  # 时间字段无需长度限制
             'user_id': 8,
             'doctor_id': 5
@@ -766,24 +713,58 @@ class Evaluation(models.Model):
     def prepare_data(cls, data):
         return data
 
-    def get_view_dic(self):
+
+# 表 17: 支付项目数据元素表
+class Payment(models.Model):
+    payment_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 支付项目：主键
+    payment_name = models.CharField(max_length=20, null=False, blank=False)  # 支付项目名：非空
+    payment_description = models.TextField(null=False, blank=False)  # 支付项目描述：非空
+    money = models.FloatField(null=False, blank=False)  # 支付金额：非空
+    user = models.ForeignKey('User', on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
+                             db_index=True)  # 外键引用 User
+    is_paid = models.BooleanField(null=False, blank=False)  # 是否已支付：非空
+
+    @classmethod
+    def get_fields(cls):
+        return cls._meta.get_fields()
+
+    @classmethod
+    def get_required_fields(cls):
         return {
-            'evaluation_id': self.evaluation_id,
-            'evaluation': self.evaluation,
-            'evaluation_time': self.evaluation_time,
-            'user_id': self.user_id,
-            'doctor_id': self.doctor_id
+            'payment_id': 8,
+            'payment_name': 20,
+            'payment_description': None,  # 文本字段无需长度限制
+            'money': None,  # 浮点数字段无需长度限制
+            'user_id': 8,
+            'is_paid': None,  # 布尔字段无需长度限制
         }
 
-    def update_view_fields(self, data):
-        self.evaluation = data.get('evaluation', self.evaluation)
-        self.evaluation_time = data.get('evaluation_time', self.evaluation_time)
-        self.user_id = data.get('user_id', self.user_id)
-        self.doctor_id = data.get('doctor_id', self.doctor_id)
-        self.save()
+    @classmethod
+    def get_optional_fields(cls):
+        return {}
+
+    @classmethod
+    def get_chinese_name(cls):
+        return '支付项目'
+
+    # 对于外键字段进行处理，将其转换为模型对象
+    @classmethod
+    def prepare_data(cls, data):
+        return data
+
+    # 生成唯一的递增支付项目号，从 1 开始。如果已存在，则跳到下一个可用的数字
+    @classmethod
+    def generate_incremental_payment_id(cls):
+        # 获取现有的最大 payment_id
+        last_payment = cls.objects.order_by('-payment_id').first()
+        if last_payment and last_payment.payment_id.isdigit():
+            next_id = int(last_payment.payment_id) + 1
+        else:
+            next_id = 1
+        return str(next_id).zfill(8)  # 补齐 8 位
 
 
-# 表 17: 图片数据元素表
+# 表 18: 图片数据元素表
 class Image(models.Model):
     image_id = models.CharField(max_length=10, primary_key=True, unique=True)  # 图片号：主键
     image_path = models.CharField(max_length=255, null=False, blank=False)  # 存储路径：非空
@@ -818,19 +799,3 @@ class Image(models.Model):
     @classmethod
     def prepare_data(cls, data):
         return data
-
-    def get_view_dic(self):
-        return {
-            'image_id': self.image_id,
-            'image_path': self.image_path,
-            'evaluation_id': self.evaluation_id,
-            'notification_id': self.notification_id,
-            'drug_id': self.drug_id
-        }
-
-    def update_view_fields(self, data):
-        self.image_path = data.get('image_path', self.image_path)
-        self.evaluation_id = data.get('evaluation_id', self.evaluation_id)
-        self.notification_id = data.get('notification_id', self.notification_id)
-        self.drug_id = data.get('drug_id', self.drug_id)
-        self.save()
