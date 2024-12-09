@@ -61,7 +61,7 @@ class User(BaseUser):
     id_number = models.CharField(max_length=18, null=False, blank=False, db_index=True)  # 身份证号：非空
     user_type = models.CharField(max_length=1, null=False, blank=False)  # 用户类型：非空
     phone = models.CharField(max_length=11, null=False, blank=False)  # 手机号：非空
-
+    image = models.ForeignKey('Image', on_delete=models.CASCADE, to_field='image_id', null=True, blank=True)
     # 用户权限设置
     groups = models.ManyToManyField(Group, related_name="user_groups")
     user_permissions = models.ManyToManyField(Permission, related_name="user_permissions")
@@ -97,6 +97,9 @@ class User(BaseUser):
     def get_chinese_name(cls):
         return '用户'
 
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
 # 表 2: 医师用户数据元素表
 class Doctor(BaseUser):
@@ -105,7 +108,7 @@ class Doctor(BaseUser):
     name = models.CharField(max_length=15, null=False, blank=False)  # 姓名：非空
     gender = models.CharField(max_length=1, null=False, blank=False)  # 性别：非空
     title = models.CharField(max_length=10, null=False, blank=False)  # 职称：非空
-    image_id = models.CharField(max_length=10, null=True, blank=True)  # 图片号：可空
+    image = models.ForeignKey('Image', on_delete=models.CASCADE, to_field='image_id', null=True, blank=True)
     introduction = models.TextField(null=False, blank=False)  # 介绍：可空
 
     # 医师权限设置
@@ -129,7 +132,8 @@ class Doctor(BaseUser):
             'password': 128,
             'name': 15,
             'gender': 1,
-            'title': 10
+            'title': 10,
+            'image' : None,  # 图片字段无需长度限制
         }
 
     @classmethod
@@ -143,7 +147,9 @@ class Doctor(BaseUser):
     def get_chinese_name(cls):
         return '医师'
 
-
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 # 表 3: 管理员数据元素表
 class Admin(BaseUser):
     admin_id = models.CharField(max_length=3, primary_key=True, unique=True, db_index=True)  # 管理员号：主键
@@ -180,6 +186,9 @@ class Admin(BaseUser):
     def get_chinese_name(cls):
         return '管理员'
 
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
 # 表 4: 家属数据元素表
 class FamilyMember(models.Model):
@@ -236,7 +245,10 @@ class FamilyMember(models.Model):
         else:
             next_id = 1
         return str(next_id).zfill(2)  # 补齐 2 位
-
+    
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
 # 表 5: 科室数据元素表
 class Department(models.Model):
@@ -261,6 +273,10 @@ class Department(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '科室'
+    
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
 
 # 表 6: 排班数据元素表
@@ -270,7 +286,7 @@ class Schedule(models.Model):
                                db_index=True)  # 外键引用 Doctor
     department = models.ForeignKey('Department', on_delete=models.CASCADE, to_field='department_id', null=True,
                                    db_index=True)  # 外键引用 Department
-    schedule_time = models.DateTimeField(max_length=6, null=False, blank=False)  # 排班时间：非空
+    schedule_time = models.CharField(max_length=50, null=False, blank=False)  # 排班时间：非空
 
     class Meta:
         indexes = [
@@ -298,7 +314,10 @@ class Schedule(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '排班'
-
+    
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
 # 表 7: 药房数据元素表
 class Pharmacy(models.Model):
@@ -324,11 +343,15 @@ class Pharmacy(models.Model):
     def get_chinese_name(cls):
         return '药房'
 
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
 # 表 8: 药品数据元素表
 class Drug(models.Model):
     drug_id = models.CharField(max_length=9, primary_key=True, unique=True)  # 药品号：主键
     drug_name = models.CharField(max_length=20, null=False, blank=False)  # 药品名称：非空
+    image = models.ForeignKey('Image', on_delete=models.CASCADE, to_field='image_id', null=True, blank=True)
     price = models.FloatField(null=False, blank=False)  # 药品价格：非空
 
     @classmethod
@@ -340,6 +363,7 @@ class Drug(models.Model):
         return {
             'drug_id': 9,
             'drug_name': 20,
+            'image': None,  # 图片字段无需长度限制
             'price': None,  # 浮点数字段无需长度限制
         }
 
@@ -351,6 +375,9 @@ class Drug(models.Model):
     def get_chinese_name(cls):
         return '药品'
 
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
 # 表 9: 药品库存数据元素表
 class DrugInventory(models.Model):
@@ -387,6 +414,9 @@ class DrugInventory(models.Model):
     def get_chinese_name(cls):
         return '药品库存'
 
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
 # 表 10: 体检安排元素表
 class ExaminationArrangement(models.Model):
@@ -417,6 +447,10 @@ class ExaminationArrangement(models.Model):
     def get_chinese_name(cls):
         return '体检安排'
 
+    @classmethod
+    def prepare_data(cls, data):
+        data['doctor'] = Doctor.objects.get(doctor_id=data['doctor_id'])
+        return data
 
 # 表 11: 体检信息数据元素表
 class ExaminationInfo(models.Model):
@@ -458,12 +492,15 @@ class ExaminationInfo(models.Model):
         # 获取现有的最大 appointment_id
         last_exam_appointment = cls.objects.order_by('-exam_appointment_id').first()
         if last_exam_appointment and last_exam_appointment.exam_appointment_id.isdigit():
-            next_id = int(last_exam_appointment.appointment_id) + 1
+            next_id = int(last_exam_appointment.exam_appointment_id) + 1
         else:
             next_id = 1
         return str(next_id).zfill(8)  # 补齐 8 位
 
 
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 # 表 12: 预约数据元素表
 class Appointment(models.Model):
     appointment_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 预约号：主键
@@ -533,6 +570,9 @@ class Appointment(models.Model):
             next_id = 1
         return str(next_id).zfill(8)  # 补齐 8 位
 
+    @classmethod
+    def prepare_data(cls, data):
+        return data
 
 # 表 13: 诊断数据元素表
 class Diagnosis(models.Model):
@@ -636,7 +676,7 @@ class Prescription(models.Model):
 
 # 表 15: 通知数据元素表
 class Notification(models.Model):
-    notification_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 通知号：主键
+    notification_id = models.AutoField(primary_key=True, unique=True)  # 通知号：主键
     notification = models.TextField(null=False, blank=False)  # 通知内容：非空
     notification_time = models.DateTimeField(null=False, blank=False)  # 通知时间：非空
     user = models.ForeignKey('User', on_delete=models.CASCADE, to_field='user_id', null=True, blank=False,
@@ -671,7 +711,7 @@ class Notification(models.Model):
 
 # 表 16: 评价数据元素表
 class Evaluation(models.Model):
-    evaluation_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 评价号：主键
+    evaluation_id = models.AutoField(primary_key=True, unique=True)  # 评价号：主键
     evaluation = models.TextField(null=False, blank=False)  # 评价内容：非空
     evaluation_star = models.IntegerField(null=False, blank=False)  # 评价星级：非空
     evaluation_time = models.DateTimeField(null=False, blank=False)  # 评价时间：非空
@@ -766,11 +806,8 @@ class Payment(models.Model):
 
 # 表 18: 图片数据元素表
 class Image(models.Model):
-    image_id = models.CharField(max_length=10, primary_key=True, unique=True)  # 图片号：主键
-    image_path = models.CharField(max_length=255, null=False, blank=False)  # 存储路径：非空
-    evaluation_id = models.CharField(max_length=8, null=True, blank=True)  # 评价号：可空
-    notification_id = models.CharField(max_length=8, null=True, blank=True)  # 通知号：可空
-    drug_id = models.CharField(max_length=9, null=True, blank=True)  # 药品号：可空
+    image_id = models.AutoField(primary_key=True, unique=True)  # 图片号：主键
+    image = models.ImageField(upload_to='images/', null=False, blank=False)  # 图片：非空
 
     @classmethod
     def get_fields(cls):
@@ -780,16 +817,9 @@ class Image(models.Model):
     def get_required_fields(cls):
         return {
             'image_id': 10,
-            'image_path': 255
+            'image': None  # 图片字段无需长度限制
         }
 
-    @classmethod
-    def get_optional_fields(cls):
-        return {
-            'evaluation_id': 8,
-            'notification_id': 8,
-            'drug_id': 9
-        }
 
     @classmethod
     def get_chinese_name(cls):

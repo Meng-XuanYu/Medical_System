@@ -148,3 +148,9 @@ AUTHENTICATION_BACKENDS = [
     'MedicalSystem.auth_backends.DoctorBackend',  # 自定义医生认证后端
     'MedicalSystem.auth_backends.AdminBackend',  # 自定义管理员认证后端
 ]
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
+
+MEDIA_URL = '/images/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
+# settings.py

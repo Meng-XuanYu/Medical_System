@@ -1,4 +1,4 @@
-from django.contrib import admin
+'''from django.contrib import admin
 from .models import *
 
 
@@ -10,7 +10,7 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ('doctor_id', 'password', 'name', 'gender', 'title')
+    list_display = ('doctor_id', 'password', 'name', 'gender','image', 'title')
     search_fields = ('doctor_id', 'name')
 
 
@@ -46,7 +46,7 @@ class PharmacyAdmin(admin.ModelAdmin):
 
 @admin.register(Drug)
 class DrugAdmin(admin.ModelAdmin):
-    list_display = ('drug_id', 'drug_name', 'price')
+    list_display = ('drug_id', 'drug_name', 'image', 'price')
     search_fields = ('drug_id', 'drug_name')
 
 
@@ -99,8 +99,4 @@ class EvaluationAdmin(admin.ModelAdmin):
     list_display = ('evaluation_id', 'evaluation', 'evaluation_time', 'user_id', 'doctor_id')
     search_fields = ('evaluation_id',)
 
-
-@admin.register(Image)
-class ImageAdmin(admin.ModelAdmin):
-    list_display = ('image_id', 'image_path', 'evaluation_id', 'notification_id', 'drug_id')
-    search_fields = ('image_id',)
+'''

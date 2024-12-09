@@ -17,7 +17,8 @@ Including another URLconf
 
 from django.urls import path
 from django.contrib import admin
-
+from django.conf import settings
+from django.conf.urls.static import static
 from MedicalSystem import views as ms_views
 
 urlpatterns = [
@@ -47,14 +48,14 @@ urlpatterns = [
     # 管理员函数
     path('<str:model_name>/all/', ms_views.get_all_record),
     path('<str:model_name>/single/', ms_views.get_single_record),
-    path('<str:model_name>/upgrade/', ms_views.update_record),
+    path('<str:model_name>/update/', ms_views.update_record),
     path('<str:model_name>/add/', ms_views.add_record),
     path('<str:model_name>/delete/', ms_views.delete_record),
-
+    
     # 预约函数
     path('appointment/info/', ms_views.get_appointment_info),
     path('user/appointment/info/', ms_views.get_user_appointment_info),
-    path('user/appointment/reserve/', ms_views.appointment_reserve),
+    path('user/appointment/book/', ms_views.appointment_reserve),
     path('user/appointment/cancel/', ms_views.appointment_cancel),
     path('examination/info/', ms_views.get_examination_info),
     path('user/examination/info/', ms_views.get_user_examination_info),
@@ -65,6 +66,9 @@ urlpatterns = [
     path('user/ill_history/', ms_views.get_user_ill_history),
     path('user/pay/info/', ms_views.get_user_payments),
     path('user/pay/check/', ms_views.get_user_payment_check),
+    path('user/comment/', ms_views.user_comment),
+    path('user/get_doctors_comments/', ms_views.get_doctors_comments),
+    path('notice/', ms_views.notice),
 
     # 家属管理
     path('teacher/family_members/info/', ms_views.get_family_members),
@@ -84,6 +88,7 @@ urlpatterns = [
     path('doctor/medicine/info/', ms_views.get_medicine_info),
     path('doctor/medicine/decrease/', ms_views.doctor_prescribe),
 
+    path('getImageUrl/', ms_views.getImageUrl),  # 获取图片地址
     # 测试用函数
     path('user/info/', ms_views.get_user_info),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
