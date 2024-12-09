@@ -1,0 +1,58 @@
+<!-- templates/homepage.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+</head>
+<body>
+<h1>航医通</h1>
+<h3>后端测试主页</h3>
+
+<div id="user-info-box"
+     style="position: fixed; right: 0; top: 20px; width: 200px; border: 1px solid #ccc; padding: 10px;">
+    <h3>当前用户</h3>
+    <p><strong>用户类型:</strong> <span id="user-type"></span></p>
+    <p><strong>ID:</strong> <span id="user-id"></span></p>
+    <p><strong>姓名:</strong> <span id="user-name"></span></p>
+</div>
+
+<button onclick="window.location.href='../admin/'">管理员入口（请先登录）</button>
+
+<br>
+<br>
+
+<button onclick="window.location.href='../page/register/user/'">用户注册</button>
+<button onclick="window.location.href='../page/register/doctor/'">医师注册</button>
+<button onclick="window.location.href='../page/register/admin/'">管理员注册</button>
+
+<br>
+<br>
+
+<button onclick="window.location.href='../page/login/user/'">用户登录&退出登录</button>
+<button onclick="window.location.href='../page/login/doctor/'">医师登录&退出登录</button>
+<button onclick="window.location.href='../page/login/admin/'">管理员登录&退出登录</button>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch('/user/info/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'  // 表明是AJAX请求
+            },
+            credentials: 'same-origin'  // 用于发送会话cookie
+        })
+            .then(response => response.json())
+            .then(data => {
+                // 将获取到的数据填充到用户信息框
+                document.getElementById("user-type").textContent = data.base_user_type;  // 显示用户类型
+                document.getElementById("user-id").textContent = data.id;
+                document.getElementById("user-name").textContent = data.name;
+            })
+            .catch(error => console.error("Error fetching user info:", error));
+    });
+</script>
+
+</body>
+</html>

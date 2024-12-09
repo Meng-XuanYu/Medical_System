@@ -1,0 +1,25 @@
+外键都设置了null=True，这个有待解决
+家属在其他表中如何联系？
+被设置成外键的主键均不可修改
+新加几个接口，一个是医生查询自己的排班/doctor/schedule/info/,
+医生查看自己排班内的预约/doctor/schedule/appointment/这个输出一个字典，key是排班时间的字符串，value是这个时间段的预约信息
+/doctor/comment/查询对我的评价，建议加个星级选项，那样比较合适
+/doctor/patients/past/返回预约我的已完成的患者的信息
+/doctor/patients/future/查询未完成的预约患者的信息
+/doctor/prescription/add/输入一个预约号和处方信息，添加一个对该预约的处方
+/doctor/prescription/info/获取过去的预约中由本人开具的处方，每个预约对应一个处方列表
+/doctor/medicine/info/查询所有药品的信息
+/doctor/schedule/appointment/done将该预约的状态改为已完成
+/user/prescription/返回全部的处方
+/user/illhistory/返回全部的病历
+/doctor/medicine/decrease/开药并生成一个费用的数据，
+属性名            字段名                            数据类型       约束
+支付项目号     payment_id                 varchar(8)     not null
+支付项目名     payment_name           varchar(20)   not  null
+支付项目描述 payment_description  varchar(100) not null
+支付金额        money                          Number        not  null
+收款对象         user_id                          varchar(8)     not null
+对于用户来说/user/pay/info/查询自己的全部费用
+/user/pay/check/传一个payment_id，检查当前费用是否已经被支付
+候诊查询/user/wait/，如果当前没有未完成的预约，则返回null啥的，
+如果有，就返回当前那个未完成的预约记录，并将该医生该时间段前方还有的未完成人数统计出来返回

@@ -1,0 +1,19 @@
+所有char替换成varchar
+Django 推荐密码字段长度至少为 128 字符，以确保兼容其所有内置的密码哈希方案。
+实际存储的哈希值可能并未使用到全部 128 字符，但这样设置有助于确保当前或未来的哈希算法都能适用。
+医生介绍改成了可空
+管理员的password和name顺序交换
+所有staff替换为doctor
+表15学工号用staff_id???
+所有表示学工号的id替换成user_id
+user_id最长改为9位
+表11、表12增加字段：state # 体检状态：非空
+Evaluation增加evaluation_star评价星级字段
+新增支付项目表Payment
+属性名         字段名                 数据类型       约束
+支付项目号   payment_id              varchar(8)      not null
+支付项目名   payment_name            varchar(20)     not  null
+支付项目描述  payment_description     text            not null
+支付金额    money                   float           not  null
+付款对象    user                    外键
+是否已支付   is_paid                 boolean         not  null

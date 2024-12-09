@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Login</title>
+</head>
+<body>
+<h1>用户登录</h1>
+<form id="loginForm">
+    <label for="id">学工号:</label>
+    <input type="text" id="id" name="id" required>
+    <br><br>
+    <label for="password">密码:</label>
+    <input type="password" id="password" name="password" required>
+    <br><br>
+    <button type="button" onclick="login()">登录</button>
+    <button type="button" onclick="logout()">退出登录</button>
+    <br><br>
+    <button type="button" onclick="goToHomepage()">回到主页</button>
+</form>
+
+<p id="message"></p>
+
+<script>
+    async function login() {
+        const id = document.getElementById('id').value;
+        const password = document.getElementById('password').value;
+
+        const requestBody = {
+            id: id,
+            password: password,
+            user_type: "s"
+        };
+
+        const response = await fetch('/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')  // CSRF token
+            },
+            body: JSON.stringify(requestBody),
+            credentials: 'same-origin'  // 确保请求携带会话信息
+        });
+
+        const result = await response.json();
+        document.getElementById('message').textContent = result.message;
+    }
+
+    async function logout() {
+        const response = await fetch('/logout/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'same-origin'  // 确保请求携带会话信息
+        });
+
+        const result = await response.json();
+        document.getElementById('message').textContent = result.message;
+    }
+
+    function goToHomepage() {
+        window.location.href = "{% url 'homepage' %}";
+    }
+
+    // Helper function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+</body>
+</html>

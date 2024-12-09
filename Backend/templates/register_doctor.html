@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Register</title>
+</head>
+<body>
+<h1>医师注册</h1>
+<form id="doctorRegisterForm">
+    <label for="doctor_id">医工号:</label>
+    <input type="text" id="doctor_id" name="doctor_id" required>
+    <br><br>
+    <label for="password">密码:</label>
+    <input type="password" id="password" name="password" required>
+    <br><br>
+    <label for="name">姓名:</label>
+    <input type="text" id="name" name="name" required>
+    <br><br>
+    <label for="gender">性别:</label>
+    <input type="text" id="gender" name="gender" required>
+    <br><br>
+    <label for="title">职称:</label>
+    <input type="text" id="title" name="title" required>
+    <br><br>
+    <label for="image_id">图片号:</label>
+    <input type="text" id="image_id" name="image_id">
+    <br><br>
+    <label for="introduction">介绍:</label>
+    <textarea id="introduction" name="introduction"></textarea>
+    <br><br>
+    <button type="button" onclick="doctorRegister()">注册</button>
+    <br><br>
+    <button type="button" onclick="goToHomepage()">回到主页</button>
+</form>
+
+<p id="message"></p>
+
+<script>
+    async function doctorRegister() {
+        const formData = {
+            doctor_id: document.getElementById('doctor_id').value,
+            password: document.getElementById('password').value,
+            name: document.getElementById('name').value,
+            gender: document.getElementById('gender').value,
+            title: document.getElementById('title').value,
+            image_id: document.getElementById('image_id').value,
+            introduction: document.getElementById('introduction').value
+        };
+
+        const response = await fetch('/register/doctor/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(formData),
+            credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+        document.getElementById('message').textContent = result.message;
+    }
+
+    function goToHomepage() {
+        window.location.href = "{% url 'homepage' %}";
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+</body>
+</html>
