@@ -1,3 +1,4 @@
+import jieba
 from django.db.models import Prefetch
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -7,13 +8,16 @@ from django.contrib.auth import logout as auth_logout
 from django.core.exceptions import FieldError
 from MedicalSystem.view_funcs.menus import *
 from MedicalSystem.view_funcs.appointment_funcs import *
+from django.db.models import Q
 import json
 import time
 
 from .view_funcs.base_user_funcs import *
+from .view_funcs.load_stopwords import load_stopwords
 from .view_funcs.table_funcs import *
 
 home_url = "login/"
+stop_words = load_stopwords('stopwords.txt')
 
 
 @require_GET
@@ -261,7 +265,6 @@ def get_base_user_profile(request):
 @require_POST
 def get_all_record(request, model_name):
     # 确保当前用户已登录，并且用户类型是 Admin
-
     if model_name != 'examinations':
         if not is_admin(request.user):
             return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
@@ -272,7 +275,41 @@ def get_all_record(request, model_name):
     if not model_class:
         return JsonResponse({'status': 'error', 'message': '无效的表名'}, status=400)
 
-    instances = get_instances(model_class)
+    # 解析请求体中的 searchText 字段
+    try:
+        data = json.loads(request.body)
+        search_text = data.get('searchText', '').strip()
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': '请求体格式错误'}, status=400)
+
+    # 如果提供了 searchText，则执行搜索逻辑
+    if search_text:
+        search_text = search_text.lower()
+        tokens = jieba.lcut(search_text)
+        filtered_tokens = [
+            word for word in tokens if word.strip() and word not in stop_words
+        ]
+        if not filtered_tokens:
+            return JsonResponse({
+                'status': 'error',
+                'message': '未能提取有效的关键词'
+            },
+                status=400)
+
+        queries = Q()
+        for token in tokens:
+            # 遍历模型的所有字段，动态构建查询条件
+            for field in model_class.get_fields():
+                if isinstance(field, (models.CharField, models.TextField)):
+                    queries |= Q(**{f"{field.name}__icontains": token})
+
+        # 执行查询，去重
+        instances = model_class.objects.filter(queries).distinct()
+    else:
+        # 如果没有提供 searchText，则返回所有记录
+        instances = get_instances(model_class)
+
+    # 序列化数据并返回
     return JsonResponse([instance_to_dict(instance) for instance in instances], safe=False)
 
 
