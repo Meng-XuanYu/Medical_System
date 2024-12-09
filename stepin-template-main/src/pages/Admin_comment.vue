@@ -21,16 +21,19 @@
         <div v-if="column.dataIndex === 'evaluation_id'" class="type1">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'evaluation_content'" class="type2">
+        <div v-else-if="column.dataIndex === 'evaluation'" class="type2">
           {{ text }}
         </div>
         <div v-else-if="column.dataIndex === 'evaluation_time'" class="type3">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'id'" class="type4">
+        <div v-else-if="column.dataIndex === 'user'" class="type4">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'staff_id'" class="type5">
+        <div v-else-if="column.dataIndex === 'doctor'" class="type5">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'evaluation_star'" class="type6">
           {{ text }}
         </div>
         <template v-else-if="column.dataIndex === 'edit'">
@@ -61,16 +64,19 @@
           <a-input v-model:value="currentEvaluation.evaluation_id" :disabled="isEdit" />
         </a-form-item>
         <a-form-item label="评价内容" :rules="[{ required: true, message: '请输入评价内容' }]">
-          <a-textarea v-model:value="currentEvaluation.evaluation_content" rows="3" />
+          <a-textarea v-model:value="currentEvaluation.evaluation" rows="3" />
         </a-form-item>
         <a-form-item label="评价时间" :rules="[{ required: true, message: '请选择评价时间' }]">
-          <a-date-picker v-model:value="currentEvaluation.evaluation_time" />
+          <a-input v-model:value="currentEvaluation.evaluation_time" />
         </a-form-item>
         <a-form-item label="评价人学号" :rules="[{ required: true, message: '请输入评价人学号' }]">
-          <a-input v-model:value="currentEvaluation.id" />
+          <a-input v-model:value="currentEvaluation.user" />
         </a-form-item>
         <a-form-item label="被评价人医工号" :rules="[{ required: true, message: '请输入被评价人医工号' }]">
-          <a-input v-model:value="currentEvaluation.staff_id" />
+          <a-input v-model:value="currentEvaluation.doctor" />
+        </a-form-item>
+        <a-form-item label="评价星级" :rules="[{ required: true, message: '请选择评价星级' }]">
+          <a-input v-model:value="currentEvaluation.evaluation_star" />
         </a-form-item>
         <div class="modal-actions">
           <a-button @click="handleOk" type="primary">确认</a-button>
@@ -94,18 +100,20 @@ const modalTitle = ref('新增评价信息');
 const isEdit = ref(false);
 const currentEvaluation = reactive({
   evaluation_id: '',
-  evaluation_content: '',
+  evaluation: '',
   evaluation_time: null,
-  id: '',
-  staff_id: '',
+  user: '',
+  doctor: '',
+  evaluation_star: '',
 });
 
 const columns = [
   { title: '评价号', dataIndex: 'evaluation_id', key: 'evaluation_id' },
-  { title: '评价内容', dataIndex: 'evaluation_content', key: 'evaluation_content' },
+  { title: '评价内容', dataIndex: 'evaluation', key: 'evaluation' },
   { title: '评价时间', dataIndex: 'evaluation_time', key: 'evaluation_time' },
-  { title: '评价人学号', dataIndex: 'id', key: 'id' },
-  { title: '被评价人医工号', dataIndex: 'staff_id', key: 'staff_id' },
+  { title: '评价人学号', dataIndex: 'user', key: 'user' },
+  { title: '被评价人医工号', dataIndex: 'doctor', key: 'doctor' },
+  { title: '评价星级', dataIndex: 'evaluation_star', key: 'evaluation_star' },
   {
     title: '操作',
     dataIndex: 'edit',
@@ -131,10 +139,11 @@ function showAddModal() {
   isEdit.value = false;
   Object.assign(currentEvaluation, {
     evaluation_id: '',
-    evaluation_content: '',
+    evaluation: '',
     evaluation_time: null,
-    id: '',
-    staff_id: '',
+    user: '',
+    doctor: '',
+    evaluation_star: '',
   });
   isModalVisible.value = true;
 }
@@ -149,7 +158,14 @@ function handleEdit(record: any) {
 async function handleOk() {
   if (isEdit.value) {
     try {
-      await http.request('/evaluation/update/', 'POST_JSON', { ...currentEvaluation });
+      await http.request('/evaluation/update/', 'POST_JSON', {
+        evaluation_id: currentEvaluation.evaluation_id,
+        evaluation: currentEvaluation.evaluation,
+        evaluation_time: currentEvaluation.evaluation_time,
+        user_id: currentEvaluation.user,
+        doctor_id: currentEvaluation.doctor,
+        evaluation_star: currentEvaluation.evaluation_star,
+      });
       message.success('编辑评价信息成功');
     } finally {
       isModalVisible.value = false;
@@ -157,7 +173,14 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/evaluation/add/', 'POST_JSON', { ...currentEvaluation });
+      await http.request('/evaluation/add/', 'POST_JSON', {
+        evaluation_id: currentEvaluation.evaluation_id,
+        evaluation: currentEvaluation.evaluation,
+        evaluation_time: currentEvaluation.evaluation_time,
+        user_id: currentEvaluation.user,
+        doctor_id: currentEvaluation.doctor,
+        evaluation_star: currentEvaluation.evaluation_star,
+      });
       message.success('新增评价信息成功');
     } finally {
       isModalVisible.value = false;
@@ -170,8 +193,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(evaluation_id: any) {
-  http.request('/evaluation/delete/', 'POST_JSON', { evaluation_id: evaluation_id });
+async function handleDelete(evaluation_id: any) {
+  await http.request('/evaluation/delete/', 'POST_JSON', { evaluation_id: evaluation_id });
   message.success('删除评价信息成功');
   fetchEvaluations();
 }
@@ -262,8 +285,8 @@ onMounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 400px;
+  min-width: 600px;
+  min-height: 600px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

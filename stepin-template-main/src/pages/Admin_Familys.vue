@@ -170,8 +170,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(family_id: any) {
-  http.request('/family/delete/', 'POST_JSON', { family_id });
+async function handleDelete(family_id: any) {
+  await http.request('/family/delete/', 'POST_JSON', { family_id });
   message.success('删除家属信息成功');
   fetchFamilyMembers();
 }

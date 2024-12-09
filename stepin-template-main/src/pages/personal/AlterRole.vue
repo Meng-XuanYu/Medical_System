@@ -10,7 +10,8 @@
             v-for="family in familyMembers"
             :key="family.relation"
             :value="family.relation"
-            :style="{backgroundColor: family.relation === selectedRole ? '#1a9def' : '' }"
+            :style="{backgroundColor: family.relation === selectedRole ? '#1a9def' : '' ,height: '50px',textAlign: 'center',lineHeight: '50px'}"
+
         >
           {{ family.relation }}（{{ family.name }}）
         </a-radio-button>

@@ -1,13 +1,13 @@
 <template>
   <div class="examination-page">
-    <h1>体检项目预约</h1>
+    <h2>体检项目预约</h2>
 
     <!-- 体检项目列表 -->
     <div v-if="examinations.length > 0">
       <a-table :columns="columns" :data-source="examinations" row-key="examination_id">
         <template #action="{ record }">
-          <a-button type="primary" @click="reserveExamination(record)" :disabled="record.isReserved">
-            {{ record.isReserved ? '已预约' : '预约' }}
+          <a-button type="primary" @click="reserveExamination(record)" :disabled="isReserved(record)">
+            {{ isReserved(record) ? '已预约' : '预约' }}
           </a-button>
         </template>
       </a-table>
@@ -19,13 +19,14 @@
     <!-- 预约历史 -->
     <div class="reservation-history">
       <h2>预约历史</h2>
+
       <div v-if="reservations.length > 0">
         <a-table :columns="historyColumns" :data-source="reservations" row-key="reservation_id">
           <template #action="{ record }">
-            <a-button type="danger" @click="cancelReservation(record)" v-if="isFutureDate(record.examination_date)">
+            <a-button type="danger" @click="cancelReservation(record)" :disabled="isCancelledOrCompleted(record)">
               取消预约
             </a-button>
-            <span v-else>已过期</span>
+
           </template>
         </a-table>
       </div>
@@ -39,7 +40,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
-import axios from 'axios';
 import http from "@/store/http";
 
 const user_id = localStorage.getItem('user_id');
@@ -49,9 +49,9 @@ const reservations = ref([]);
 
 const columns = [
   { title: '体检号', dataIndex: 'examination_id', key: 'examination_id' },
-  { title: '体检项目', dataIndex: 'examination_text', key: 'examination_text' },
+  { title: '体检项目', dataIndex: 'examination', key: 'examination' },
   { title: '体检日期', dataIndex: 'examination_date', key: 'examination_date' },
-  { title: '负责医工号', dataIndex: 'staff_id', key: 'staff_id' },
+  { title: '负责医工号', dataIndex: 'doctor', key: 'doctor' },
   {
     title: '操作',
     key: 'action',
@@ -62,9 +62,10 @@ const columns = [
 
 const historyColumns = [
   { title: '预约编号', dataIndex: 'reservation_id', key: 'reservation_id' },
-  { title: '体检号', dataIndex: 'examination_id', key: 'examination_id' },
-  { title: '体检项目', dataIndex: 'examination_text', key: 'examination_text' },
+  { title: '体检项目', dataIndex: 'examination_id', key: 'examination_id' },
   { title: '体检日期', dataIndex: 'examination_date', key: 'examination_date' },
+  { title: '医生', dataIndex: 'doctor', key: 'doctor' },
+  { title: '状态', dataIndex: 'state', key: 'state' },
   {
     title: '操作',
     key: 'action',
@@ -79,25 +80,40 @@ function isFutureDate(date) {
   return targetDate > today;
 }
 
-function fetchExaminations() {
-  http.request('/examination/info/', 'get').then(response => {
-    examinations.value = response.data.map(item => {
-      item.isReserved = false;
-      reservations.value.forEach(reservation => {
-        if (reservation.examination_id === item.examination_id) {
-          item.isReserved = true;
-        }
-      });
-      return item;
-    });
+function isReserved(record) {
+  for (const reservation of reservations.value) {
+    console.log('reservation:', reservation);
+    console.log('record:', record);
+    if (reservation.examination_id === record.examination && reservation.state !== '已取消') {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isCancelledOrCompleted(record) {
+  return record.state === '已取消' || record.state === '已完成';
+}
+
+async function fetchExaminations() {
+  http.request('/examinations/all/', 'POST_JSON').then(response => {
+    examinations.value = response.data;
   });
 }
 
-function fetchReservations() {
-  http.request(`/user/examination/info/`, 'get' ).then(response => {
-    reservations.value = response.data;
-    fetchExaminations();
-  });
+async function fetchReservations() {
+  try {
+    const response = await http.request(`/user/examination/info/`, 'get');
+    reservations.value = response.data.data.map(item => ({
+      reservation_id: item.exam_appointment_id,
+      examination_id: item.examination_arrangement.examination,
+      examination_date: item.examination_arrangement.examination_date,
+      doctor: item.examination_arrangement.doctor.name,
+      state: item.state,
+    }));
+  } catch (error) {
+    console.error('Failed to fetch reservations:', error);
+  }
 }
 
 function reserveExamination(record) {
@@ -114,8 +130,7 @@ function reserveExamination(record) {
 
 function cancelReservation(record) {
   http.request('/user/examination/cancel/', 'POST_JSON', {
-    user_id: user_id,
-    reservation_id: record.reservation_id,
+    'exam_appointment_id': record.reservation_id,
   }).then(() => {
     message.success('取消预约成功');
     fetchReservations();
@@ -126,9 +141,9 @@ function cancelReservation(record) {
 
 onMounted(() => {
   fetchReservations();
+  fetchExaminations();
 });
 </script>
-
 <style scoped>
 .examination-page {
   padding: 24px;

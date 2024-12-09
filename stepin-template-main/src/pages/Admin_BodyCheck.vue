@@ -27,7 +27,7 @@
         <div v-else-if="column.dataIndex === 'examination_date'" class="type3">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'doctor_id'" class="type4">
+        <div v-else-if="column.dataIndex === 'doctor'" class="type4">
           {{ text }}
         </div>
         <template v-else-if="column.dataIndex === 'edit'">
@@ -75,7 +75,7 @@
           </div>
         </a-form-item>
         <a-form-item label="负责医生工号" :rules="[{ required: true, message: '请输入负责医生工号' }]">
-          <a-input v-model:value="currentExamination.doctor_id" />
+          <a-input v-model:value="currentExamination.doctor" />
         </a-form-item>
         <div class="modal-actions">
           <a-button @click="handleOk" type="primary">确认</a-button>
@@ -107,7 +107,8 @@ const currentExamination = reactive({
   examination_id: '',
   examination: '',
   examination_date: '',
-  doctor_id: '',
+doctor_id: '',
+  doctor: '',
 });
 
 const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - 50 + i);
@@ -118,7 +119,7 @@ const columns = [
   { title: '体检号', dataIndex: 'examination_id', key: 'examination_id' },
   { title: '体检项目', dataIndex: 'examination', key: 'examination' },
   { title: '体检日期', dataIndex: 'examination_date', key: 'examination_date' },
-  { title: '负责医生工号', dataIndex: 'doctor_id', key: 'doctor_id' },
+  { title: '负责医生工号', dataIndex: 'doctor', key: 'doctor' },
   {
     title: '操作',
     dataIndex: 'edit',
@@ -147,7 +148,7 @@ function showAddModal() {
     examination_id: '',
     examination: '',
     examination_date: '',
-    doctor_id: '',
+    doctor: '',
   });
   dateform.year = '';
   dateform.month = '';
@@ -167,6 +168,7 @@ async function handleOk() {
   currentExamination.examination_date = dateform.year + '-' + dateform.month + '-' + dateform.day;
   if (isEdit.value) {
     try {
+      currentExamination.doctor_id = currentExamination.doctor;
       await http.request('/examination/update/', 'POST_JSON', { ...currentExamination });
       message.success('编辑体检项目成功');
     } finally {
@@ -175,6 +177,7 @@ async function handleOk() {
     }
   } else {
     try {
+      currentExamination.doctor_id = currentExamination.doctor;
       await http.request('/examination/add/', 'POST_JSON', { ...currentExamination });
       message.success('新增体检项目成功');
     } finally {
@@ -188,8 +191,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(examination_id: any) {
-  http.request('/examination/delete/', 'POST_JSON', { examination_id: examination_id });
+async function handleDelete(examination_id: any) {
+  await http.request('/examination/delete/', 'POST_JSON', { examination_id: examination_id });
   message.success('删除体检项目成功');
   fetchExaminations();
 }
@@ -280,8 +283,8 @@ onMounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 400px;
+  min-width: 600px;
+  min-height: 400px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

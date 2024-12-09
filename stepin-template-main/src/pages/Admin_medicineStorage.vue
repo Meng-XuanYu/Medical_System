@@ -148,8 +148,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(record: any) {
-  http.request('/drugstock/delete/', 'POST_JSON', { drug_id: record.drug_id, pharmacy_id: record.pharmacy_id });
+async function handleDelete(record: any) {
+  await http.request('/drugstock/delete/', 'POST_JSON', { drug_id: record.drug_id, pharmacy_id: record.pharmacy_id });
   message.success('删除药品库存成功');
   fetchDrugStocks();
 }

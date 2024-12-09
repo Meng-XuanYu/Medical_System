@@ -21,12 +21,25 @@
         <div v-if="column.dataIndex === 'doctor_id'" class="type1">
           {{ text }}
         </div>
+        <div v-else-if="column.dataIndex === 'password'" class="type2">
+          {{ text }}
+        </div>
         <div v-else-if="column.dataIndex === 'name'" class="type2">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'title'" class="type3">
+        <div v-else-if="column.dataIndex === 'gender'" class="type3">
           {{ text }}
         </div>
+        <div v-else-if="column.dataIndex === 'title'" class="type4">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'introduction'" class="type5">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'image'">
+          <img :src="text"  style="width: 200px; height: 200px;">
+        </div>
+
         <template v-else-if="column.dataIndex === 'edit'">
           <a-button type="link" @click="handleEdit(record)" class="edit-button">
             <EditOutlined />
@@ -42,6 +55,7 @@
         <div v-else class="text-subtext">
           {{ text }}
         </div>
+
       </template>
     </a-table>
 
@@ -54,14 +68,20 @@
         <a-form-item label="医工号" :rules="[{ required: true, message: '请输入医工号' }]">
           <a-input v-model:value="currentStaff.doctor_id" :disabled="isEdit" />
         </a-form-item>
+        <a-form-item label="密码" :rules="[{ required: true, message: '请输入密码' }]">
+          <a-input v-model:value="currentStaff.password" type="password" />
+        </a-form-item>
         <a-form-item label="姓名" :rules="[{ required: true, message: '请输入姓名' }]">
           <a-input v-model:value="currentStaff.name" />
+        </a-form-item>
+        <a-form-item label="性别" :rules="[{ required: true, message: '请输入性别' }]">
+          <a-input v-model:value="currentStaff.gender" />
         </a-form-item>
         <a-form-item label="职称" :rules="[{ required: true, message: '请输入职称' }]">
           <a-input v-model:value="currentStaff.title" />
         </a-form-item>
-        <a-form-item label="图片号" >
-          <a-input v-model:value="currentStaff.image_id" />
+        <a-form-item label="图片">
+          <input type="file" id="image" name="image" accept="image/*" required>
         </a-form-item>
         <a-form-item label="介绍" :rules="[{ required: true, message: '请输入介绍' }]">
           <a-textarea v-model:value="currentStaff.introduction" rows="3" />
@@ -80,7 +100,6 @@ import { ref, reactive, onMounted } from 'vue';
 import { message } from 'ant-design-vue';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue';
 import http from "@/store/http";
-
 const searchText = ref('');
 const staff = ref([]);
 const isModalVisible = ref(false);
@@ -90,14 +109,20 @@ const currentStaff = reactive({
   doctor_id: '',
   name: '',
   title: '',
-  image_id: '',
+  gender: '',
+  password: '',
+  image: '',
   introduction: ''
 });
 
 const columns = [
   { title: '医工号', dataIndex: 'doctor_id', key: 'doctor_id' },
+  { title:'密码', dataIndex: 'password', key: 'password', width: 50},
   { title: '姓名', dataIndex: 'name', key: 'name' },
+  { title: '性别', dataIndex: 'gender', key:'gender'},
   { title: '职称', dataIndex: 'title', key: 'title' },
+  { title: '图片', dataIndex: 'image', key: 'image' },
+  { title: '介绍', dataIndex: 'introduction', key: 'introduction' },
   {
     title: '操作',
     dataIndex: 'edit',
@@ -112,9 +137,24 @@ const columns = [
   }
 ];
 
+async function getImage(image: string) {
+  try {
+    const response = await http.request('getImageUrl/', 'GET', { image: image });
+    console.log(response.data.data as string);
+    return response.data.data as string;
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    throw error;  // 或者根据需要处理错误
+  }
+}
+
+
 function fetchStaff() {
   http.request('/staff/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     staff.value = response.data;
+    staff.value.forEach(async (item: any) => {
+      item.image = await getImage(item.image);
+    });
   });
 }
 
@@ -123,9 +163,11 @@ function showAddModal() {
   isEdit.value = false;
   Object.assign(currentStaff, {
     doctor_id: '',
+    password:'',
     name: '',
+    gender: '',
     title: '',
-    image_id: '',
+    image: '',
     introduction: ''
   });
   isModalVisible.value = true;
@@ -149,7 +191,16 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/staff/add/', 'POST_JSON', { ...currentStaff });
+      const formData = new FormData();
+      formData.append('doctor_id', currentStaff.doctor_id);
+      formData.append('password', currentStaff.password);
+      formData.append('name', currentStaff.name);
+      formData.append('gender', currentStaff.gender);
+      formData.append('title', currentStaff.title);
+      formData.append('introduction', currentStaff.introduction);
+      const imageFile = document.getElementById('image').files[0];
+      formData.append('image', imageFile);
+      await http.request('/register/doctor/', 'POST_JSON',  formData);
       message.success('新增医务人员信息成功');
     } finally {
       isModalVisible.value = false;
@@ -162,8 +213,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(doctor_id: any) {
-  http.request('/staff/delete/', 'POST_JSON', { doctor_id });
+async function handleDelete(doctor_id: any) {
+  await http.request('/staff/delete/', 'POST_JSON', { doctor_id });
   message.success('删除医务人员信息成功');
   fetchStaff();
 }
@@ -173,7 +224,7 @@ onMounted(() => {
 });
 </script>
 
-<style>
+<style scoped>
 .admin-page {
   padding: 20px;
   background-color: #f0f2f5;
@@ -227,8 +278,10 @@ onMounted(() => {
 }
 
 .type2 {
-
+  max-height: 200px;
   color: #52c41a;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
 }
 
 .type3 {
@@ -254,8 +307,8 @@ onMounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 400px;
+  min-width: 600px;
+  min-height: 600px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

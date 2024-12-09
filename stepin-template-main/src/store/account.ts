@@ -36,6 +36,7 @@ export type AccountParams = {
     phone: string,
     identity: string,
     usertype: string,
+    image: File | null;
 }
 
 export function getCookie(name: string | any[]) {
@@ -57,37 +58,23 @@ export const useAccountStore = defineStore('account', {
 
     actions: {
         logged: undefined,
-        async Register(account: AccountParams
-        ) {
-            fetch('/api/register/user/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')  // CSRF token
-                },
-                body: JSON.stringify({
-                    user_id: account.username,
-                    password: account.password,
-                    name: account.name,
-                    gender: account.gender,
-                    birth: account.borndate,
-                    id_number: account.identity,
-                    user_type: account.usertype,
-                    phone: account.phone,
-                }),
-                credentials: 'same-origin'
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        ElMessage.success('注册成功, 自动跳转到登录页面');
-                        setTimeout(null, 1000);
+        async Register(account: any) {
+            try {
+                const response = await http.request('/register/user/', 'POST_JSON', account);
+                const data = response.data;
+                if (data.status === 'success') {
+                    ElMessage.success('注册成功, 自动跳转到登录页面');
+                    setTimeout(() => {
                         router.push('/login');
-                    } else {
-                        ElMessage.error('注册失败：' + data.message);
-                        console.error('注册失败:' + data.message);
-                    }
-                })
+                    }, 1000);
+                } else {
+                    ElMessage.error('注册失败：' + data.message);
+                    console.error('注册失败:' + data.message);
+                }
+            } catch (error) {
+                ElMessage.error('注册失败：' + error.message);
+                console.error('注册失败:', error);
+            }
         },
 
         async login(username: string, password: string, userType: string) {

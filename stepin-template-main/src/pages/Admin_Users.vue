@@ -9,16 +9,10 @@
           enter-button
           class="search-input"
       />
-      <a-button type="primary" @click="showAddModal" class="add-button">
-        <template #icon>
-          <PlusOutlined />
-        </template>
-        新增用户
-      </a-button>
     </div>
     <a-table v-bind="$attrs" :columns="columns" :dataSource="users" :pagination="false" class="mytable">
       <template #bodyCell="{ column, text, record }">
-        <div v-if="column.dataIndex === 'id'" class="type1">
+        <div v-if="column.dataIndex === 'user_id'" class="type1">
           {{ text }}
         </div>
         <div v-else-if="column.dataIndex === 'name'" class="type2">
@@ -30,14 +24,11 @@
         <div v-else-if="column.dataIndex === 'user_type'" class="type4">
           {{ text }}
         </div>
-        <template v-else-if="column.dataIndex === 'edit'">
-          <a-button type="link" @click="handleEdit(record)" class="edit-button">
-            <EditOutlined />
-            编辑
-          </a-button>
-        </template>
+        <div v-else-if="column.dataIndex === 'user_image'" class="type5">
+          <img :src="text" width="50px" height="50px" />
+        </div>
         <template v-else-if="column.dataIndex === 'delete'">
-          <a-button type="link" @click="handleDelete(record.id)" class="delete-button">
+          <a-button type="link" @click="handleDelete(record.user_id)" class="delete-button">
             <DeleteOutlined />
             删除
           </a-button>
@@ -48,33 +39,7 @@
       </template>
     </a-table>
 
-    <div v-if="isModalVisible" class="floating-modal" ref="modal">
-      <div class="modal-header">
-        <span>{{ modalTitle }}</span>
-        <a-button type="link" @click="handleCancel">关闭</a-button>
-      </div>
-      <a-form :model="currentUser" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }" ref="userForm" class="my-form">
-        <a-form-item label="学工号" :rules="[{ required: true, message: '请输入学工号' }]">
-          <a-input v-model:value="currentUser.id" :disabled="isEdit" />
-        </a-form-item>
-        <a-form-item label="姓名" :rules="[{ required: true, message: '请输入姓名' }]">
-          <a-input v-model:value="currentUser.name" />
-        </a-form-item>
-        <a-form-item label="手机号" :rules="[{ required: true, message: '请输入手机号' }]">
-          <a-input v-model:value="currentUser.phone" />
-        </a-form-item>
-        <a-form-item label="用户类型" :rules="[{ required: true, message: '请输入用户类型' }]">
-          <a-select v-model:value="currentUser.user_type" placeholder="选择用户类型">
-            <a-select-option value="1">管理员</a-select-option>
-            <a-select-option value="2">普通用户</a-select-option>
-          </a-select>
-        </a-form-item>
-        <div class="modal-actions">
-          <a-button @click="handleOk" type="primary">确认</a-button>
-          <a-button @click="handleCancel">取消</a-button>
-        </div>
-      </a-form>
-    </div>
+
   </div>
 </template>
 
@@ -90,77 +55,62 @@ const isModalVisible = ref(false);
 const modalTitle = ref('新增用户');
 const isEdit = ref(false);
 const currentUser = reactive({
-  id: '',
+  user_id: '',
   name: '',
   phone: '',
-  user_type: ''
+  user_type: '',
+  user_image: '',
 });
 
 const columns = [
-  { title: '学工号', dataIndex: 'id', key: 'id' },
+  { title: '学工号', dataIndex: 'user_id', key: 'user_id' },
   { title: '姓名', dataIndex: 'name', key: 'name' },
   { title: '手机号', dataIndex: 'phone', key: 'phone' },
   { title: '用户类型', dataIndex: 'user_type', key: 'user_type' },
+  { title: '用户头像', dataIndex: 'user_image', key: 'user_image' },
   {
     title: '操作',
-    dataIndex: 'edit',
-    key: 'edit',
-    width: 100,
-  },
-  {
-    title: '',
     dataIndex: 'delete',
     key: 'delete',
     width: 100,
   }
 ];
-
-function fetchUsers() {
+async function getImage(image: string) {
+  try {
+    const response = await http.request('getImageUrl/', 'GET', { image: image });
+    console.log(response.data.data as string);
+    return response.data.data as string;
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    throw error;  // 或者根据需要处理错误
+  }
+}
+async function fetchUsers() {
   http.request('/user/all/', 'POST_JSON', { searchText: searchText.value }).then((response) => {
     users.value = response.data;
+    users.value.forEach(async (user: any) => {
+      user.user_image = await getImage(user.image);
+    });
   });
 }
 
 function showAddModal() {
   modalTitle.value = '新增用户';
   isEdit.value = false;
-  Object.assign(currentUser, { id: '', name: '', phone: '', user_type: '' });
+  Object.assign(currentUser, { user_id: '', name: '', phone: '', user_type: '', user_image: '' });
   isModalVisible.value = true;
 }
 
-function handleEdit(record: any) {
-  modalTitle.value = '编辑用户';
-  isEdit.value = true;
-  Object.assign(currentUser, record);
-  isModalVisible.value = true;
-}
 
-async function handleOk() {
-  if (isEdit.value) {
-    try {
-      await http.request('/user/update/', 'POST_JSON', { ...currentUser });
-      message.success('编辑用户信息成功');
-    } finally {
-      isModalVisible.value = false;
-      fetchUsers();
-    }
-  } else {
-    try {
-      await http.request('/user/add/', 'POST_JSON', { ...currentUser });
-      message.success('新增用户信息成功');
-    } finally {
-      isModalVisible.value = false;
-      fetchUsers();
-    }
-  }
-}
+
+
 
 function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(id: any) {
-  http.request('/user/delete/', 'POST_JSON', { id });
+async function handleDelete(id: any) {
+  await http.request('/user/delete/', 'POST_JSON', { 'user_id': id });
   message.success('删除用户信息成功');
   fetchUsers();
 }

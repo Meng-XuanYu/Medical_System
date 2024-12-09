@@ -172,8 +172,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(record: any) {
-  http.request('/prescription/delete/', 'POST_JSON', { prescription_id: record.prescription_id });
+async function handleDelete(record: any) {
+  await http.request('/prescription/delete/', 'POST_JSON', { prescription_id: record.prescription_id });
   message.success('删除处方信息成功');
   fetchPrescriptions();
 }

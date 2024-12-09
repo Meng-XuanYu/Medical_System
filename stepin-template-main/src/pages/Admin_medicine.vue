@@ -152,8 +152,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(drug_id: any) {
-  http.request('/drug/delete/', 'POST_JSON', { drug_id });
+async function handleDelete(drug_id: any) {
+  await http.request('/drug/delete/', 'POST_JSON', { drug_id });
   message.success('删除药品信息成功');
   fetchDrugs();
 }

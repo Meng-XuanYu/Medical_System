@@ -196,8 +196,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(record: any) {
-  http.request('/diagnosis/delete/', 'POST_JSON', { diagnosis_id: record.diagnosis_id });
+async function handleDelete(record: any) {
+  await http.request('/diagnosis/delete/', 'POST_JSON', { diagnosis_id: record.diagnosis_id });
   message.success('删除诊断信息成功');
   fetchDiagnoses();
 }

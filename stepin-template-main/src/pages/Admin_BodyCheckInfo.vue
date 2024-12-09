@@ -21,13 +21,16 @@
         <div v-if="column.dataIndex === 'exam_appointment_id'" class="type1">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'examination_id'" class="type2">
+        <div v-else-if="column.dataIndex === 'examination_arrangement'" class="type2">
           {{ text }}
         </div>
         <div v-else-if="column.dataIndex === 'examination_result'" class="type3">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'user_id'" class="type4">
+        <div v-else-if="column.dataIndex === 'user'" class="type4">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'state'" class="type5">
           {{ text }}
         </div>
         <template v-else-if="column.dataIndex === 'edit'">
@@ -58,13 +61,16 @@
           <a-input v-model:value="currentExaminationInfo.exam_appointment_id" :disabled="isEdit" />
         </a-form-item>
         <a-form-item label="体检项目号" :rules="[{ required: true, message: '请输入体检项目号' }]">
-          <a-textarea v-model:value="currentExaminationInfo.examination_id" rows="3" />
+          <a-textarea v-model:value="currentExaminationInfo.examination_arrangement" rows="3" />
         </a-form-item>
         <a-form-item label="体检结果" :rules="[{ required: true, message: '请输入体检结果' }]">
           <a-textarea v-model:value="currentExaminationInfo.examination_result" rows="3" />
         </a-form-item>
         <a-form-item label="体检人学号" :rules="[{ required: true, message: '请输入体检人学号' }]">
-          <a-input v-model:value="currentExaminationInfo.user_id" />
+          <a-input v-model:value="currentExaminationInfo.user" />
+        </a-form-item>
+        <a-form-item label="状态" :rules="[{ required: true, message: '请输入状态' }]">
+          <a-input v-model:value="currentExaminationInfo.state" />
         </a-form-item>
         <div class="modal-actions">
           <a-button @click="handleOk" type="primary">确认</a-button>
@@ -93,17 +99,19 @@ const dateform = reactive({
 });
 const currentExaminationInfo = reactive({
   exam_appointment_id: '',
-  examination_id: '',
+  examination_arrangement: '',
   examination_result: '',
-  user_id: '',
+  user: '',
+  state: '',
 });
 
 
 const columns = [
   { title: '体检预约号', dataIndex: 'exam_appointment_id', key: 'exam_appointment_id' },
-  { title: '体检项目号', dataIndex: 'examination_id', key: 'examination_id' },
+  { title: '体检项目号', dataIndex: 'examination_arrangement', key: 'examination_arrangement' },
   { title: '体检结果', dataIndex: 'examination_result', key: 'examination_result' },
-  { title: '体检人学号', dataIndex: 'user_id', key: 'user_id' },
+  { title: '体检人学号', dataIndex: 'user', key: 'user' },
+  {title:'状态',dataIndex:'state',key:'state'},
   {
     title: '操作',
     dataIndex: 'edit',
@@ -129,9 +137,10 @@ function showAddModal() {
   isEdit.value = false;
   Object.assign(currentExaminationInfo, {
     exam_appointment_id: '',
-    examination_id: '',
+    examination_arrangement: '',
     examination_result: '',
-    user_id: '',
+    user: '',
+    state: ''
   });
   dateform.year = '';
   dateform.month = '';
@@ -151,7 +160,13 @@ async function handleOk() {
 
   if (isEdit.value) {
     try {
-      await http.request('/examinationInfo/update/', 'POST_JSON', { ...currentExaminationInfo });
+      await http.request('/examinationInfo/update/', 'POST_JSON', {
+        exam_appointment_id: currentExaminationInfo.exam_appointment_id,
+        examination_id: currentExaminationInfo.examination_arrangement,
+        examination_result: currentExaminationInfo.examination_result,
+        user_id: currentExaminationInfo.user,
+        state: currentExaminationInfo.state
+      });
       message.success('编辑体检预约信息成功');
     } finally {
       isModalVisible.value = false;
@@ -159,7 +174,13 @@ async function handleOk() {
     }
   } else {
     try {
-      await http.request('/examinationInfo/add/', 'POST_JSON', { ...currentExaminationInfo });
+      await http.request('/examinationInfo/add/', 'POST_JSON', {
+        exam_appointment_id: currentExaminationInfo.exam_appointment_id,
+        examination_id: currentExaminationInfo.examination_arrangement,
+        examination_result: currentExaminationInfo.examination_result,
+        user_id: currentExaminationInfo.user,
+        state: currentExaminationInfo.state
+      });
       message.success('新增体检预约信息成功');
     } finally {
       isModalVisible.value = false;
@@ -172,8 +193,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(examination_id: any) {
-  http.request('/examinationInfo/delete/', 'POST_JSON', { examination_id: examination_id });
+async function handleDelete(examination_id: any) {
+  await http.request('/examinationInfo/delete/', 'POST_JSON', { examination_id: examination_id });
   message.success('删除体检预约信息成功');
   fetchExaminationInfos();
 }
@@ -263,8 +284,8 @@ onMounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 600px;
-  height: 400px;
+  min-width: 600px;
+  min-height: 500px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

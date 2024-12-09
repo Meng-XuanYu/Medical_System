@@ -123,6 +123,17 @@ export const useMenuStore = defineStore('menu', () => {
     if (localStorage.getItem('usertype') === 'a') {
       menuList.value = [
         {
+          id: 17,
+          name: 'admin_4',
+          title: '新医师注册',
+          path: '/admin_doctor',
+          icon: 'UserOutlined',  // 适合医生信息管理
+          permission: null,
+          component: '@/pages/Admin_Doctor.vue',
+          renderMenu: true,
+          parent: null,
+        },
+        {
           id: 14,
           name: 'admin_1',
           title: '体检项目管理',
@@ -152,17 +163,6 @@ export const useMenuStore = defineStore('menu', () => {
           icon: 'StarOutlined',  // 适合医生评价管理
           permission: null,
           component: '@/pages/Admin_comment.vue',
-          renderMenu: true,
-          parent: null,
-        },
-        {
-          id: 17,
-          name: 'admin_4',
-          title: '医生信息管理',
-          path: '/admin_doctor',
-          icon: 'UserOutlined',  // 适合医生信息管理
-          permission: null,
-          component: '@/pages/Admin_Doctor.vue',
           renderMenu: true,
           parent: null,
         },
@@ -244,17 +244,6 @@ export const useMenuStore = defineStore('menu', () => {
           parent: null,
         },
         {
-          id: 25,
-          name: 'admin_12',
-          title: '图片信息管理',
-          path: '/admin_picture',
-          icon: 'PictureOutlined',  // 适合图片信息管理
-          permission: null,
-          component: '@/pages/Admin_Picture.vue',
-          renderMenu: true,
-          parent: null,
-        },
-        {
           id: 26,
           name: 'admin_13',
           title: '处方信息管理',
@@ -284,17 +273,6 @@ export const useMenuStore = defineStore('menu', () => {
           icon: 'UsergroupAddOutlined',  // 适合用户信息管理
           permission: null,
           component: '@/pages/Admin_Users.vue',
-          renderMenu: true,
-          parent: null,
-        },
-        {
-          id: 301,
-          name: 'admin_17',
-          title: '管理员管理',
-          path: '/admin_admin',
-          icon: 'TeamOutlined',
-          permission: null,
-          component: '@/pages/Admin_admin.vue',
           renderMenu: true,
           parent: null,
         },
@@ -352,7 +330,7 @@ export const useMenuStore = defineStore('menu', () => {
           path: '/user_commentOnDoctor',
           icon: 'StarOutlined',  // 适合评价
           permission: null,
-          component: '@/pages/User_commentOnDoctor',
+          component: '@/pages/User_commentOnDoctor.vue',
           renderMenu: true,
           parent: null,
         },

@@ -61,7 +61,7 @@
       <div class="text-text flex-1">
         <div class="front-header flex items-baseline py-md px-xl">
           <router-link to="/home" class="text-xxl text-text hover:text-text">
-            <img src="@/assets/img.png" />
+            <img src="@/assets/img.png"  width="60"/>
             航医通
           </router-link>
           <div

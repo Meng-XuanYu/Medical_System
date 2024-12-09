@@ -140,8 +140,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(department_id: any) {
-  http.request('/department/delete/', 'POST_JSON', { department_id });
+async function handleDelete(department_id: any) {
+  await http.request('/department/delete/', 'POST_JSON', { department_id });
   message.success('删除科室信息成功');
   fetchDepartments();
 }

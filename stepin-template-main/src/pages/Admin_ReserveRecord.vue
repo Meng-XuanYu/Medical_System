@@ -24,10 +24,13 @@
         <div v-else-if="column.dataIndex === 'relationship'" class="type2">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'schedule_id'" class="type3">
+        <div v-else-if="column.dataIndex === 'schedule'" class="type3">
           {{ text }}
         </div>
-        <div v-else-if="column.dataIndex === 'id'" class="type4">
+        <div v-else-if="column.dataIndex === 'user'" class="type4">
+          {{ text }}
+        </div>
+        <div v-else-if="column.dataIndex === 'state'" class="type5">
           {{ text }}
         </div>
         <template v-else-if="column.dataIndex === 'edit'">
@@ -61,10 +64,13 @@
           <a-input v-model:value="currentAppointment.relationship" />
         </a-form-item>
         <a-form-item label="排班号" :rules="[{ required: true, message: '请输入排班号' }]">
-          <a-input v-model:value="currentAppointment.schedule_id" />
+          <a-input v-model:value="currentAppointment.schedule" />
         </a-form-item>
         <a-form-item label="学工号" :rules="[{ required: true, message: '请输入学工号' }]">
-          <a-input v-model:value="currentAppointment.id" />
+          <a-input v-model:value="currentAppointment.user" />
+        </a-form-item>
+        <a-form-item label="状态" :rules="[{ required: true, message: '请输入状态' }]">
+          <a-input v-model:value="currentAppointment.state" />
         </a-form-item>
         <div class="modal-actions">
           <a-button @click="handleOk" type="primary">确认</a-button>
@@ -89,15 +95,17 @@ const isEdit = ref(false);
 const currentAppointment = reactive({
   appointment_id: '',
   relationship: '',
-  schedule_id: '',
-  id: ''
+  schedule: '',
+  user: '',
+  state: '',
 });
 
 const columns = [
   { title: '预约号', dataIndex: 'appointment_id', key: 'appointment_id' },
   { title: '患者与预约人关系', dataIndex: 'relationship', key: 'relationship' },
-  { title: '排班号', dataIndex: 'schedule_id', key: 'schedule_id' },
-  { title: '学工号', dataIndex: 'id', key: 'id' },
+  { title: '排班号', dataIndex: 'schedule', key: 'schedule' },
+  { title: '学工号', dataIndex: 'user', key: 'user' },
+  {title:'状态',dataIndex:'state',key:'state'},
   {
     title: '操作',
     dataIndex: 'edit',
@@ -121,7 +129,7 @@ function fetchAppointments() {
 function showAddModal() {
   modalTitle.value = '新增预约';
   isEdit.value = false;
-  Object.assign(currentAppointment, { appointment_id: '', relationship: '', schedule_id: '', id: '' });
+  Object.assign(currentAppointment, { appointment_id: '', relationship: '', schedule: '', user: '', state: '' });
   isModalVisible.value = true;
 }
 
@@ -156,8 +164,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(record: any) {
-  http.request('/appointment/delete/', 'POST_JSON', { appointment_id: record.appointment_id });
+async function handleDelete(record: any) {
+  await http.request('/appointment/delete/', 'POST_JSON', { appointment_id: record.appointment_id });
   message.success('删除预约信息成功');
   fetchAppointments();
 }

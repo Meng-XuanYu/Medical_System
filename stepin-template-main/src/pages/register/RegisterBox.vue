@@ -1,6 +1,5 @@
 <template>
   <ThemeProvider :color="{ middle: { 'bg-base': '#fff' }, primary: { DEFAULT: '#1896ff' } }">
-
     <div class="Register-box rounded-sm">
       <p v-if="!showSecondPart" class="text-3xl-me font-bold">
         新用户注册
@@ -48,6 +47,11 @@
           为了让医生更好的了解您，请务必填写真实的信息。
         </div>
         <a-divider></a-divider>
+        <a-form-item :required="false" name="image" class="form-item">
+          <a-form-item :required="true" name="image" class="form-item">
+            <input type="file" @change="handleFileChange" class="Register-input h-[40px]" />
+          </a-form-item>
+        </a-form-item>
         <a-form-item :required="true" name="name" class="form-item">
           <a-input
               v-model:value="form.name"
@@ -104,7 +108,6 @@
     </div>
   </ThemeProvider>
 </template>
-
 <script lang="ts" setup>
 import { reactive, ref } from 'vue';
 import { AccountParams, useAccountStore } from '@/store';
@@ -115,7 +118,12 @@ import { Button } from 'ant-design-vue';
 const loading = ref(false);
 const showPassword = ref(false);
 const showSecondPart = ref(false);
-
+function handleFileChange(event: Event) {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    form.image = target.files[0];
+  }
+}
 const form = reactive({
   username: undefined,
   password: undefined,
@@ -127,6 +135,7 @@ const form = reactive({
   year: undefined,
   month: undefined,
   day: undefined,
+  image: undefined,
 });
 
 const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
@@ -146,20 +155,24 @@ function goBack() {
   showSecondPart.value = false;
 }
 
-function Register() {
+async function Register() {
   loading.value = true;
-  const params: AccountParams = {
-    username: form.username.toString(),
-    password: form.password.toString(),
-    name: form.name.toString(),
-    gender: form.gender.toString(),
-    borndate: `${form.year}-${form.month}-${form.day}`.toString(),
-    phone: form.phone.toString(),
-    identity: form.identity.toString(),
-    usertype: form.username.toString().length === 8 ? 's' : 't',
-  };
+  const formData = new FormData();
+  formData.append('username', form.username.toString());
+  formData.append('password', form.password.toString());
+  formData.append('name', form.name.toString());
+  formData.append('gender', form.gender.toString());
+  formData.append('borndate', `${form.year}-${form.month}-${form.day}`.toString());
+  formData.append('phone', form.phone.toString());
+  formData.append('identity', form.identity.toString());
+  if (form.image) {
+    formData.append('image', form.image);
+  }
+  formData.append('usertype', form.username.toString().length === 8 ? 's' : 't');
+
+
   accountStore
-      .Register(params)
+      .Register(formData)
       .finally(() => (loading.value = false));
 }
 function togglePasswordVisibility() {

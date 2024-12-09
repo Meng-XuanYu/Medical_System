@@ -140,8 +140,8 @@ function handleCancel() {
   isModalVisible.value = false;
 }
 
-function handleDelete(pharmacy_id: any) {
-  http.request('/pharmacy/delete/', 'POST_JSON', { pharmacy_id });
+async function handleDelete(pharmacy_id: any) {
+  await http.request('/pharmacy/delete/', 'POST_JSON', { pharmacy_id });
   message.success('删除药房信息成功');
   fetchPharmacies();
 }
