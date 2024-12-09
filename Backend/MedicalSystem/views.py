@@ -8,6 +8,7 @@ from django.core.exceptions import FieldError
 from MedicalSystem.view_funcs.menus import *
 from MedicalSystem.view_funcs.appointment_funcs import *
 import json
+import time
 
 from .view_funcs.base_user_funcs import *
 from .view_funcs.table_funcs import *
@@ -66,7 +67,7 @@ def menu_page(request):
 @require_POST
 def register_user(request):
     try:
-        
+
         data = request.POST.dict()
         image_file = request.FILES.get('image')
         if image_file is None:
@@ -106,8 +107,6 @@ def register_doctor(request):
         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
 
     try:
-        
-
         # 在创建医师前检查是否已存在
         if Doctor.objects.filter(doctor_id=request.POST.get('doctor_id')).exists():
             return JsonResponse({'status': 'error', 'message': '医师已存在'}, status=400)
@@ -140,8 +139,8 @@ def register_doctor(request):
 @require_POST
 def register_admin(request):
     # 确保当前用户已登录，并且用户类型是 Admin
-    #if not is_admin(request.user):
-     #   return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
+    # if not is_admin(request.user):
+    #   return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
 
     try:
         data = json.loads(request.body)  # 从请求体解析 JSON 数据
@@ -266,7 +265,7 @@ def get_all_record(request, model_name):
     if model_name != 'examinations':
         if not is_admin(request.user):
             return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-    else :
+    else:
         model_name = 'examination'
 
     model_class = MODEL_MAP.get(model_name)
@@ -321,7 +320,7 @@ def update_record(request, model_name):
             return check_return
 
         # 获取主键字段名称
-        primary_key_field = model_class._meta.pk.name
+        primary_key_field = model_class.get_primary_key_field()
         primary_key_value = data.get(primary_key_field)
         if not primary_key_value:
             return JsonResponse({'status': 'error', 'message': f'{primary_key_field} 不能为空'}, status=400)
@@ -344,6 +343,7 @@ def update_record(request, model_name):
         return JsonResponse({'status': 'error', 'message': '数据超出字段限制或无效'}, status=400)
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
+
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_POST
@@ -388,7 +388,7 @@ def delete_record(request, model_name):
         data = json.loads(request.body)
 
         # 获取主键字段名称
-        primary_key_field = model_class._meta.pk.name
+        primary_key_field = model_class.get_primary_key_field()
         primary_key_value = data.get(primary_key_field)
         if not primary_key_value:
             return JsonResponse({'status': 'error', 'message': f'{primary_key_field} 不能为空'}, status=400)
@@ -402,7 +402,7 @@ def delete_record(request, model_name):
         return JsonResponse({'status': 'error', 'message': f'{model_class.get_chinese_name()}不存在'}, status=400)
     except json.JSONDecodeError:
         return JsonResponse({'status': 'error', 'message': '无效的 JSON 数据'}, status=400)
-    
+
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 @require_POST
@@ -410,12 +410,12 @@ def notice(request):
     # 管理员发布公告
     if not is_admin(request.user):
         return JsonResponse({'status': 'error', 'message': '权限错误'}, status=403)
-    
+
     try:
         data = json.loads(request.body)
         user = User.objects.get(user_id=data.get('user'))
-        notice = Notification.objects.create(
-            user = user,
+        Notification.objects.create(
+            user=user,
             notification=data.get('notification'),
             notification_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         )
@@ -450,7 +450,6 @@ def get_appointment_info(request):
     return JsonResponse({'status': 'success', 'data': department_data}, safe=False)
 
 
-import time
 @csrf_exempt  # 临时禁用 CSRF 检查
 def user_comment(request):
     # 确保当前用户已登录，并且用户类型是 User
@@ -468,13 +467,13 @@ def user_comment(request):
             evaluation_star=data.get('star'),
             evaluation_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         )
-        return JsonResponse({'status': 'success', 
+        return JsonResponse({'status': 'success',
                              'user_image': request.build_absolute_uri(request.user.image.image.url),
                              'evaluation_id': evaluation.evaluation_id,
                              'time': evaluation.evaluation_time,
                              'star': evaluation.evaluation_star,
-                                'evaluation': evaluation.evaluation,
-                                'user_id': evaluation.user.user_id
+                             'evaluation': evaluation.evaluation,
+                             'user_id': evaluation.user.user_id
                              }, status=200)
     except FieldError:
         return JsonResponse({'status': 'error', 'message': '存在非法字段'}, status=400)
@@ -486,7 +485,7 @@ def user_comment(request):
 
 @csrf_exempt  # 临时禁用 CSRF 检查
 def get_doctors_comments(request):
-    #获取所有医生的信息及评价
+    # 获取所有医生的信息及评价
     doctors = get_instances(Doctor)
     doctor_data = []
     for doctor in doctors:
@@ -511,7 +510,6 @@ def get_doctors_comments(request):
         }
         doctor_data.append(doctor_info)
     return JsonResponse({'status': 'success', 'doctors': doctor_data}, safe=False)
-
 
 
 @csrf_exempt  # 临时禁用 CSRF 检查
@@ -539,7 +537,7 @@ def get_user_appointment_info(request):
             'appointment_id': appointment.appointment_id,
             'doctor_id': doctor.doctor_id if doctor else None,
             'doctor_name': doctor.name if doctor else None,
-            'doctor_image':request.build_absolute_uri(doctor.image.image.url) if doctor else None,
+            'doctor_image': request.build_absolute_uri(doctor.image.image.url) if doctor else None,
             'schedule_time': schedule.schedule_time if schedule else None,
             'state': appointment.state
         }
@@ -1516,7 +1514,7 @@ def get_user_info(request):
 
 
 @csrf_exempt  # 临时禁用 CSRF 检查
-def getImageUrl(request):
+def get_image_url(request):
     image_id = request.GET.get('image')
     image = Image.objects.filter(image_id=image_id).first(
     )

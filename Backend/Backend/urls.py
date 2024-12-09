@@ -88,7 +88,7 @@ urlpatterns = [
     path('doctor/medicine/info/', ms_views.get_medicine_info),
     path('doctor/medicine/decrease/', ms_views.doctor_prescribe),
 
-    path('getImageUrl/', ms_views.getImageUrl),  # 获取图片地址
+    path('getImageUrl/', ms_views.get_image_url),  # 获取图片地址
     # 测试用函数
     path('user/info/', ms_views.get_user_info),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

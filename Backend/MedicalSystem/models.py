@@ -77,6 +77,10 @@ class User(BaseUser):
         return cls._meta.get_fields()
 
     @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'user_id': 8,
@@ -100,6 +104,7 @@ class User(BaseUser):
     @classmethod
     def prepare_data(cls, data):
         return data
+
 
 # 表 2: 医师用户数据元素表
 class Doctor(BaseUser):
@@ -126,6 +131,10 @@ class Doctor(BaseUser):
         return cls._meta.get_fields()
 
     @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'doctor_id': 5,
@@ -133,7 +142,7 @@ class Doctor(BaseUser):
             'name': 15,
             'gender': 1,
             'title': 10,
-            'image' : None,  # 图片字段无需长度限制
+            'image': None,  # 图片字段无需长度限制
         }
 
     @classmethod
@@ -150,6 +159,8 @@ class Doctor(BaseUser):
     @classmethod
     def prepare_data(cls, data):
         return data
+
+
 # 表 3: 管理员数据元素表
 class Admin(BaseUser):
     admin_id = models.CharField(max_length=3, primary_key=True, unique=True, db_index=True)  # 管理员号：主键
@@ -171,6 +182,10 @@ class Admin(BaseUser):
         return cls._meta.get_fields()
 
     @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'admin_id': 3,
@@ -189,6 +204,7 @@ class Admin(BaseUser):
     @classmethod
     def prepare_data(cls, data):
         return data
+
 
 # 表 4: 家属数据元素表
 class FamilyMember(models.Model):
@@ -212,6 +228,10 @@ class FamilyMember(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -245,10 +265,11 @@ class FamilyMember(models.Model):
         else:
             next_id = 1
         return str(next_id).zfill(2)  # 补齐 2 位
-    
+
     @classmethod
     def prepare_data(cls, data):
         return data
+
 
 # 表 5: 科室数据元素表
 class Department(models.Model):
@@ -258,6 +279,10 @@ class Department(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -273,7 +298,7 @@ class Department(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '科室'
-    
+
     @classmethod
     def prepare_data(cls, data):
         return data
@@ -299,6 +324,10 @@ class Schedule(models.Model):
         return cls._meta.get_fields()
 
     @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'schedule_id': 8,
@@ -314,10 +343,11 @@ class Schedule(models.Model):
     @classmethod
     def get_chinese_name(cls):
         return '排班'
-    
+
     @classmethod
     def prepare_data(cls, data):
         return data
+
 
 # 表 7: 药房数据元素表
 class Pharmacy(models.Model):
@@ -327,6 +357,10 @@ class Pharmacy(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -347,6 +381,7 @@ class Pharmacy(models.Model):
     def prepare_data(cls, data):
         return data
 
+
 # 表 8: 药品数据元素表
 class Drug(models.Model):
     drug_id = models.CharField(max_length=9, primary_key=True, unique=True)  # 药品号：主键
@@ -357,6 +392,10 @@ class Drug(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -379,6 +418,7 @@ class Drug(models.Model):
     def prepare_data(cls, data):
         return data
 
+
 # 表 9: 药品库存数据元素表
 class DrugInventory(models.Model):
     drug_id = models.CharField(max_length=9)  # 药品号：主键
@@ -397,6 +437,10 @@ class DrugInventory(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -418,6 +462,7 @@ class DrugInventory(models.Model):
     def prepare_data(cls, data):
         return data
 
+
 # 表 10: 体检安排元素表
 class ExaminationArrangement(models.Model):
     examination_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 体检号：主键
@@ -429,6 +474,10 @@ class ExaminationArrangement(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -452,6 +501,7 @@ class ExaminationArrangement(models.Model):
         data['doctor'] = Doctor.objects.get(doctor_id=data['doctor_id'])
         return data
 
+
 # 表 11: 体检信息数据元素表
 class ExaminationInfo(models.Model):
     exam_appointment_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 体检预约号：主键
@@ -466,6 +516,10 @@ class ExaminationInfo(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -497,10 +551,11 @@ class ExaminationInfo(models.Model):
             next_id = 1
         return str(next_id).zfill(8)  # 补齐 8 位
 
-
     @classmethod
     def prepare_data(cls, data):
         return data
+
+
 # 表 12: 预约数据元素表
 class Appointment(models.Model):
     appointment_id = models.CharField(max_length=8, primary_key=True, unique=True, db_index=True)  # 预约号：主键
@@ -521,6 +576,10 @@ class Appointment(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -574,6 +633,7 @@ class Appointment(models.Model):
     def prepare_data(cls, data):
         return data
 
+
 # 表 13: 诊断数据元素表
 class Diagnosis(models.Model):
     diagnosis_id = models.CharField(max_length=8, primary_key=True, unique=True)  # 诊断号：主键
@@ -593,6 +653,10 @@ class Diagnosis(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -639,6 +703,10 @@ class Prescription(models.Model):
         return cls._meta.get_fields()
 
     @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'prescription_id': 8,
@@ -662,7 +730,7 @@ class Prescription(models.Model):
     def prepare_data(cls, data):
         return data
 
-    # 生成唯一的递增预约号，从 1 开始。如果已存在，则跳到下一个可用的数字
+    # 生成唯一的递增处方号，从 1 开始。如果已存在，则跳到下一个可用的数字
     @classmethod
     def generate_incremental_prescription_id(cls):
         # 获取现有的最大 prescription_id
@@ -685,6 +753,10 @@ class Notification(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -730,6 +802,10 @@ class Evaluation(models.Model):
         return cls._meta.get_fields()
 
     @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'evaluation_id': 8,
@@ -767,6 +843,10 @@ class Payment(models.Model):
     @classmethod
     def get_fields(cls):
         return cls._meta.get_fields()
+
+    @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
 
     @classmethod
     def get_required_fields(cls):
@@ -814,12 +894,15 @@ class Image(models.Model):
         return cls._meta.get_fields()
 
     @classmethod
+    def get_primary_key_field(cls):
+        return cls._meta.pk.name
+
+    @classmethod
     def get_required_fields(cls):
         return {
             'image_id': 10,
             'image': None  # 图片字段无需长度限制
         }
-
 
     @classmethod
     def get_chinese_name(cls):

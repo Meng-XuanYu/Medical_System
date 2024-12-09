@@ -1,6 +1,7 @@
 from MedicalSystem.models import Schedule
 from collections import defaultdict
 
+
 def get_schedules_by_department(department):
     # 查询指定科室的排班数据，并预取关联的 Doctor 信息
     schedules = Schedule.objects.filter(department=department).select_related('doctor')

@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login
 
 
 def is_logged(user):
@@ -35,7 +35,7 @@ def fields_check(model_class, data, integrity_check=False):
         for field, max_length in required_fields.items():
             if field not in data or not data[field]:
                 return JsonResponse({'status': 'error', 'message': f'缺少必填字段：{field}'}, status=400)
-            if type(data[field])!=int and max_length and len(data[field]) > max_length:
+            if type(data[field]) is not int and max_length and len(data[field]) > max_length:
                 return JsonResponse({'status': 'error', 'message': f'{field}字段长度不能超过{max_length}个字符'},
                                     status=400)
     # 检查可选字段
