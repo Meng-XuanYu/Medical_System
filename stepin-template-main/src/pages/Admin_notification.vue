@@ -71,7 +71,7 @@
 
                 <a-card >
 
-                  <img :src="user.image_url" width="50px">
+                  <img :src="user.image_url" width="50px" height="50px">
 
                   <a-checkbox
                       v-model:checked="selectedUserIds"
@@ -380,7 +380,7 @@ onMounted(async () => {
 }
 
 .user-selection {
-  gap: 30px;
+  gap: 10px;
   min-height: 400px;
   overflow-y: visible;
 }
